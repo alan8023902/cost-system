@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "cost-skills": {
+      "command": "D:\\Python311_portable\\python.exe",
+      "args": ["tools/mcp/cost_skills_server.py"],
+      "env": {
+        "COST_SKILLS_ROOT": "./skills"
+      },
+      "disabled": false,
+      "autoApprove": ["list_skills", "get_skill", "search_skills"],
+      "disabledTools": []
+    }
+  }
+}
