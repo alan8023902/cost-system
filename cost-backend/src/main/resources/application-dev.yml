@@ -1,0 +1,108 @@
+server:
+  port: 31943
+
+
+spring:
+  application:
+    name: cost-system-backend-dev
+  
+  # MySQL Database Configuration for Development
+  datasource:
+    url: jdbc:mysql://localhost:3306/cost_system_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password: liurongai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # update模式：自动更新表结构，不会删除数据
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true  # 开发环境显示SQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: false  # 禁用Flyway，使用JPA自动管理表结构
+
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: alanlr
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: NON_NULL
+
+  security:
+    user:
+      name: admin
+      password: admin123
+
+logging:
+  level:
+    com.costsystem: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.data.redis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,h2-console
+  endpoint:
+    health:
+      show-details: always
+
+# 业务配置
+cost-system:
+  jwt:
+    secret: cost-system-jwt-secret-key-2024-very-long-and-secure-dev
+    expiration: 86400000  # 24小时
+    refresh-expiration: 604800000  # 7天
+  
+  file:
+    upload-path: /tmp/cost-system-dev/uploads
+    max-size: 100MB
+  
+  workflow:
+    enabled: true
+    
+  audit:
+    enabled: true
+
+# 开发环境初始化数据
+cost-system-dev:
+  init-data:
+    enabled: true
+    admin-username: admin
+    admin-password: admin123
+    test-project: true

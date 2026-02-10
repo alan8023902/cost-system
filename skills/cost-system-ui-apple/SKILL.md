@@ -1,22 +1,21 @@
----
+﻿---
 name: cost-system-ui-apple
-description: Apple-style UI/UX system for enterprise cost-control applications. Defines layout, spacing, typography, interaction patterns, and visual hierarchy.
-metadata:
-  tags: ui, ux, apple, design-system, frontend, enterprise
+description: Apple-inspired visual refinements for the cost system frontend. Use only after applying the mandatory global standard at docs/Frontend-UI-Global-Standard.md, and only for micro-level polish that does not break the workbench-style data UI.
 ---
 
-## When to use
+## Required order
 
-Use this skill whenever designing UI, layouts, components, pages, or interactions for the cost control system.
+1. Apply `docs/Frontend-UI-Global-Standard.md` first.
+2. Then use these rules for secondary visual polish.
 
-## How to use
+## Rule files
 
-- [rules/design-principles.md](rules/design-principles.md) – Apple-style visual philosophy
-- [rules/layout-system.md](rules/layout-system.md) – Grid, spacing, containers
-- [rules/typography.md](rules/typography.md) – Font scale & hierarchy
-- [rules/color-system.md](rules/color-system.md) – Neutral palette & semantic colors
-- [rules/components.md](rules/components.md) – Cards, tables, forms
-- [rules/interactions.md](rules/interactions.md) – Animations & motion
-- [rules/page-patterns.md](rules/page-patterns.md) – Project page, version page, approval page
-- [rules/data-tables.md](rules/data-tables.md) – Excel-like but Apple minimal
-- [rules/mobile-adaptation.md](rules/mobile-adaptation.md) – iPad/mobile layout rules
+- [rules/design-principles.md](rules/design-principles.md)
+- [rules/layout-system.md](rules/layout-system.md)
+- [rules/typography.md](rules/typography.md)
+- [rules/color-system.md](rules/color-system.md)
+- [rules/components.md](rules/components.md)
+- [rules/interactions.md](rules/interactions.md)
+- [rules/page-patterns.md](rules/page-patterns.md)
+- [rules/data-tables.md](rules/data-tables.md)
+- [rules/mobile-adaptation.md](rules/mobile-adaptation.md)

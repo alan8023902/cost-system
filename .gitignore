@@ -1,0 +1,7 @@
+﻿# Local build artifacts
+cost-frontend/node_modules/
+cost-frontend/dist/
+cost-backend/target/
+cost-backend/logs/
+deploy/dist/
+*.log

@@ -1,0 +1,349 @@
+@import './design-tokens.scss';
+
+// ========================================
+// Workbench Components - 工作台组件样式
+// ========================================
+
+// Page Container
+.page-container {
+  min-height: 100vh;
+  background: $neutral-50;
+  display: flex;
+  flex-direction: column;
+}
+
+// Page Header (顶部操作栏)
+.page-header {
+  background: $neutral-0;
+  border-bottom: 1px solid $border-light;
+  padding: $space-4 $space-6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  min-height: $header-height;
+
+  h1 {
+    font-size: $text-2xl;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+}
+
+// Page Content
+.page-content {
+  flex: 1;
+  padding: $space-6;
+  overflow-y: auto;
+}
+
+// Workbench Layout (工作台布局)
+.workbench-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.workbench-left-nav {
+  width: $left-nav-width;
+  background: $neutral-0;
+  border-right: 1px solid $border-light;
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width $transition-base;
+
+  &.collapsed {
+    width: $left-nav-collapsed-width;
+  }
+}
+
+.workbench-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: $neutral-50;
+}
+
+.workbench-header {
+  background: $neutral-0;
+  border-bottom: 1px solid $border-light;
+  padding: $space-4 $space-6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: $header-height;
+  gap: $space-4;
+  flex-shrink: 0;
+}
+
+.workbench-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-6;
+}
+
+// Status Badge (状态徽章)
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  font-weight: $font-medium;
+  line-height: 1.5;
+
+  &.status-draft {
+    background: $neutral-100;
+    color: $neutral-700;
+  }
+
+  &.status-in-approval {
+    background: $warning-50;
+    color: $warning-700;
+  }
+
+  &.status-issued {
+    background: $success-50;
+    color: $success-700;
+  }
+
+  &.status-archived {
+    background: $neutral-100;
+    color: $neutral-500;
+  }
+}
+
+// Data Table (高密度数据表)
+.data-table-wrapper {
+  background: $neutral-0;
+  border: 1px solid $border-light;
+  border-radius: $radius-sm;
+  overflow: hidden;
+
+  .data-table {
+    width: 100%;
+    font-size: $text-base;
+
+    thead {
+      background: $table-header-bg;
+      
+      th {
+        text-align: left;
+        padding: $space-3 $space-4;
+        font-size: $text-base;
+        font-weight: $font-semibold;
+        color: $text-secondary;
+        border-bottom: 1px solid $border-light;
+        white-space: nowrap;
+
+        &.text-right {
+          text-align: right;
+        }
+
+        &.text-center {
+          text-align: center;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border-light;
+        transition: background-color $transition-fast;
+
+        &:hover {
+          background: $table-hover-bg;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      td {
+        padding: $space-2 $space-4;
+        height: $table-row-height;
+        color: $text-primary;
+        vertical-align: middle;
+
+        &.text-right {
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+        }
+
+        &.text-center {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+// Card (卡片)
+.card {
+  background: $neutral-0;
+  border: 1px solid $border-light;
+  border-radius: $card-radius;
+  padding: $card-padding;
+  box-shadow: $shadow-xs;
+
+  .card-header {
+    margin-bottom: $space-4;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-light;
+
+    .card-title {
+      font-size: $text-lg;
+      font-weight: $font-semibold;
+      color: $text-primary;
+    }
+  }
+
+  .card-body {
+    color: $text-primary;
+  }
+}
+
+// Section (区块)
+.section {
+  margin-bottom: $space-6;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-header {
+    margin-bottom: $space-4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .section-title {
+      font-size: $text-lg;
+      font-weight: $font-semibold;
+      color: $text-primary;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: $space-2;
+    }
+  }
+}
+
+// Filter Bar (筛选栏)
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-4;
+  background: $neutral-0;
+  border: 1px solid $border-light;
+  border-radius: $radius-sm;
+  margin-bottom: $space-4;
+  flex-wrap: wrap;
+}
+
+// Toolbar (工具栏)
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+  background: $neutral-0;
+  border-bottom: 1px solid $border-light;
+}
+
+// Empty State (空状态)
+.empty-state {
+  text-align: center;
+  padding: $space-16 $space-8;
+  color: $text-tertiary;
+
+  .empty-icon {
+    font-size: 48px;
+    color: $neutral-300;
+    margin-bottom: $space-4;
+  }
+
+  .empty-title {
+    font-size: $text-lg;
+    font-weight: $font-medium;
+    color: $text-secondary;
+    margin-bottom: $space-2;
+  }
+
+  .empty-desc {
+    font-size: $text-sm;
+    color: $text-tertiary;
+  }
+}
+
+// Loading Overlay
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-modal;
+}
+
+// 响应式 - 平板
+@media (max-width: $breakpoint-lg) {
+  .workbench-left-nav {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: $z-fixed;
+    transform: translateX(-100%);
+    transition: transform $transition-base;
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  .page-header {
+    padding: $space-3 $space-4;
+  }
+
+  .page-content {
+    padding: $space-4;
+  }
+
+  .workbench-content {
+    padding: $space-4;
+  }
+}
+
+// 响应式 - 手机
+@media (max-width: $breakpoint-md) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-3;
+
+    h1 {
+      font-size: $text-xl;
+    }
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

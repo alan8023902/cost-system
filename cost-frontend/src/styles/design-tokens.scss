@@ -1,0 +1,212 @@
+// ========================================
+// Design Tokens - Engineering Cost Workbench System
+// 工程数据工作台系统 - 设计令牌
+// ========================================
+
+// 色彩系统 - Color System
+// ----------------------------------------
+// 主色调 - Primary (专业蓝)
+$primary-50: #eff6ff;
+$primary-100: #dbeafe;
+$primary-200: #bfdbfe;
+$primary-300: #93c5fd;
+$primary-400: #60a5fa;
+$primary-500: #3b82f6;  // 主色
+$primary-600: #2563eb;  // 常用主色
+$primary-700: #1d4ed8;
+$primary-800: #1e40af;
+$primary-900: #1e3a8a;
+
+// 中性色 - Neutral (灰度)
+$neutral-0: #ffffff;
+$neutral-50: #f9fafb;
+$neutral-100: #f3f4f6;
+$neutral-200: #e5e7eb;
+$neutral-300: #d1d5db;
+$neutral-400: #9ca3af;
+$neutral-500: #6b7280;
+$neutral-600: #4b5563;
+$neutral-700: #374151;
+$neutral-800: #1f2937;
+$neutral-900: #111827;
+
+// 功能色 - Functional
+// Success (成功色 - 绿色)
+$success-50: #f0fdf4;
+$success-100: #dcfce7;
+$success-200: #bbf7d0;
+$success-300: #86efac;
+$success-400: #4ade80;
+$success-500: #22c55e;
+$success-600: #16a34a;
+$success-700: #15803d;
+$success-800: #166534;
+$success-900: #14532d;
+
+// Warning (警告色 - 橙色)
+$warning-50: #fffbeb;
+$warning-100: #fef3c7;
+$warning-200: #fde68a;
+$warning-300: #fcd34d;
+$warning-400: #fbbf24;
+$warning-500: #f59e0b;
+$warning-600: #d97706;
+$warning-700: #b45309;
+$warning-800: #92400e;
+$warning-900: #78350f;
+
+// Error (错误色 - 红色)
+$error-50: #fef2f2;
+$error-100: #fee2e2;
+$error-200: #fecaca;
+$error-300: #fca5a5;
+$error-400: #f87171;
+$error-500: #ef4444;
+$error-600: #dc2626;
+$error-700: #b91c1c;
+$error-800: #991b1b;
+$error-900: #7f1d1d;
+
+// Info (信息色 - 蓝色，与主色一致)
+$info-50: #eff6ff;
+$info-100: #dbeafe;
+$info-200: #bfdbfe;
+$info-300: #93c5fd;
+$info-400: #60a5fa;
+$info-500: #3b82f6;
+$info-600: #2563eb;
+$info-700: #1d4ed8;
+$info-800: #1e40af;
+$info-900: #1e3a8a;
+
+// 文本颜色 - Text Colors
+// ----------------------------------------
+$text-primary: $neutral-900;      // 主要文本
+$text-secondary: $neutral-600;    // 次要文本
+$text-tertiary: $neutral-500;     // 三级文本
+$text-disabled: $neutral-400;     // 禁用文本
+$text-inverse: $neutral-0;        // 反色文本
+
+// 背景色 - Background Colors
+// ----------------------------------------
+$bg-primary: $neutral-0;          // 主背景(白色)
+$bg-secondary: $neutral-50;       // 次背景
+$bg-tertiary: $neutral-100;       // 三级背景
+$bg-hover: $neutral-50;           // 悬停背景
+$bg-active: $neutral-100;         // 激活背景
+$bg-disabled: $neutral-100;       // 禁用背景
+
+// 边框色 - Border Colors
+// ----------------------------------------
+$border-light: $neutral-200;      // 浅边框
+$border-default: $neutral-300;    // 默认边框
+$border-strong: $neutral-400;     // 强边框
+$border-focus: $primary-500;      // 焦点边框
+
+// 阴影 - Shadows
+// ----------------------------------------
+$shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+// 圆角 - Border Radius
+// ----------------------------------------
+$radius-xs: 2px;
+$radius-sm: 4px;    // 系统标准圆角
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-xl: 12px;
+$radius-2xl: 16px;
+$radius-3xl: 24px;
+$radius-full: 9999px;
+
+// 间距系统 - Spacing System (8px基准)
+// ----------------------------------------
+$space-0: 0;
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-7: 28px;
+$space-8: 32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+
+// 字体系统 - Typography
+// ----------------------------------------
+// 字体族
+$font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+$font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', monospace;
+
+// 字号
+$text-xs: 12px;
+$text-sm: 13px;
+$text-base: 14px;   // 基础字号
+$text-md: 15px;
+$text-lg: 16px;
+$text-xl: 18px;
+$text-2xl: 20px;
+$text-3xl: 24px;
+$text-4xl: 28px;
+
+// 行高
+$leading-tight: 1.25;
+$leading-normal: 1.5;
+$leading-relaxed: 1.75;
+
+// 字重
+$font-normal: 400;
+$font-medium: 500;
+$font-semibold: 600;
+$font-bold: 700;
+
+// Z-index 层级
+// ----------------------------------------
+$z-base: 1;
+$z-dropdown: 1000;
+$z-sticky: 1010;
+$z-fixed: 1020;
+$z-modal-backdrop: 1030;
+$z-modal: 1040;
+$z-popover: 1050;
+$z-tooltip: 1060;
+
+// 过渡动画 - Transitions
+// ----------------------------------------
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// 布局断点 - Breakpoints
+// ----------------------------------------
+$breakpoint-sm: 640px;   // 手机
+$breakpoint-md: 768px;   // 平板
+$breakpoint-lg: 1024px;  // 笔记本
+$breakpoint-xl: 1280px;  // 桌面
+$breakpoint-2xl: 1536px; // 大桌面
+
+// 专属配置 - Engineering Workbench Specific
+// ----------------------------------------
+// Header高度
+$header-height: 56px;
+
+// LeftNav宽度
+$left-nav-width: 240px;
+$left-nav-collapsed-width: 64px;
+
+// 表格
+$table-row-height: 40px;
+$table-header-bg: $neutral-50;
+$table-border: $border-light;
+$table-hover-bg: $neutral-50;
+$table-stripe-bg: $neutral-50;
+
+// 卡片
+$card-padding: $space-6;
+$card-border: $border-light;
+$card-radius: $radius-lg;

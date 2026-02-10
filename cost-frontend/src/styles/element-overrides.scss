@@ -1,0 +1,546 @@
+@import './design-tokens.scss';
+
+// ========================================
+// Element Plus Theme Overrides
+// Element Plus 组件样式覆盖
+// ========================================
+
+// 覆盖Element Plus的CSS变量
+:root {
+  // Primary Color
+  --el-color-primary: #{$primary-600};
+  --el-color-primary-light-3: #{$primary-400};
+  --el-color-primary-light-5: #{$primary-300};
+  --el-color-primary-light-7: #{$primary-200};
+  --el-color-primary-light-8: #{$primary-100};
+  --el-color-primary-light-9: #{$primary-50};
+  --el-color-primary-dark-2: #{$primary-700};
+
+  // Success Color
+  --el-color-success: #{$success-600};
+  --el-color-success-light-3: #{$success-400};
+  --el-color-success-light-5: #{$success-300};
+  --el-color-success-light-7: #{$success-200};
+  --el-color-success-light-8: #{$success-100};
+  --el-color-success-light-9: #{$success-50};
+
+  // Warning Color
+  --el-color-warning: #{$warning-600};
+  --el-color-warning-light-3: #{$warning-400};
+  --el-color-warning-light-5: #{$warning-300};
+  --el-color-warning-light-7: #{$warning-200};
+  --el-color-warning-light-8: #{$warning-100};
+  --el-color-warning-light-9: #{$warning-50};
+
+  // Error/Danger Color
+  --el-color-danger: #{$error-600};
+  --el-color-error: #{$error-600};
+  --el-color-danger-light-3: #{$error-400};
+  --el-color-danger-light-5: #{$error-300};
+  --el-color-danger-light-7: #{$error-200};
+  --el-color-danger-light-8: #{$error-100};
+  --el-color-danger-light-9: #{$error-50};
+
+  // Info Color
+  --el-color-info: #{$info-600};
+
+  // Text Colors
+  --el-text-color-primary: #{$text-primary};
+  --el-text-color-regular: #{$text-secondary};
+  --el-text-color-secondary: #{$text-tertiary};
+  --el-text-color-placeholder: #{$text-disabled};
+  --el-text-color-disabled: #{$text-disabled};
+
+  // Border
+  --el-border-color: #{$border-light};
+  --el-border-color-light: #{$border-light};
+  --el-border-color-lighter: #{$border-light};
+  --el-border-color-extra-light: #{$border-light};
+  --el-border-color-dark: #{$border-default};
+  --el-border-color-darker: #{$border-strong};
+
+  // Background
+  --el-bg-color: #{$bg-primary};
+  --el-bg-color-page: #{$bg-secondary};
+  --el-bg-color-overlay: #{$bg-primary};
+
+  // Typography
+  --el-font-size-base: #{$text-base};
+  --el-font-size-small: #{$text-sm};
+  --el-font-size-large: #{$text-lg};
+  --el-font-size-extra-large: #{$text-xl};
+  --el-font-family: #{$font-sans};
+
+  // Border Radius
+  --el-border-radius-base: #{$radius-sm};
+  --el-border-radius-small: #{$radius-xs};
+  --el-border-radius-round: #{$radius-full};
+  --el-border-radius-circle: 50%;
+
+  // Component Sizes
+  --el-component-size-large: 40px;
+  --el-component-size: 36px;
+  --el-component-size-small: 32px;
+}
+
+// ========================================
+// Button Overrides
+// ========================================
+.el-button {
+  font-weight: $font-medium;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+
+  &--large {
+    height: 44px;
+    padding: 12px 20px;
+    font-size: $text-md;
+  }
+
+  &--default {
+    height: 36px;
+    padding: 8px 16px;
+  }
+
+  &--small {
+    height: 32px;
+    padding: 6px 12px;
+    font-size: $text-sm;
+  }
+
+  &--primary {
+    background-color: $primary-600;
+    border-color: $primary-600;
+
+    &:hover {
+      background-color: $primary-700;
+      border-color: $primary-700;
+    }
+
+    &:active {
+      background-color: $primary-800;
+      border-color: $primary-800;
+    }
+  }
+}
+
+// ========================================
+// Input Overrides
+// ========================================
+.el-input {
+  &__wrapper {
+    border-radius: $radius-md;
+    box-shadow: 0 0 0 1px $border-light inset;
+    transition: all $transition-base;
+
+    &:hover {
+      box-shadow: 0 0 0 1px $border-default inset;
+    }
+
+    &.is-focus {
+      box-shadow: 0 0 0 2px $primary-500 inset !important;
+    }
+  }
+
+  &__inner {
+    font-size: $text-base;
+    color: $text-primary;
+
+    &::placeholder {
+      color: $text-disabled;
+    }
+  }
+}
+
+// ========================================
+// Table Overrides
+// ========================================
+.el-table {
+  font-size: $text-base;
+  color: $text-primary;
+
+  &__header {
+    th {
+      background-color: $table-header-bg;
+      color: $text-secondary;
+      font-weight: $font-semibold;
+      font-size: $text-base;
+      height: $table-row-height;
+      padding: 8px 12px;
+    }
+  }
+
+  &__body {
+    tr {
+      transition: background-color $transition-fast;
+
+      &:hover > td {
+        background-color: $table-hover-bg !important;
+      }
+    }
+
+    td {
+      height: $table-row-height;
+      padding: 8px 12px;
+      border-bottom: 1px solid $table-border;
+    }
+  }
+
+  &__row--striped {
+    td {
+      background-color: $table-stripe-bg;
+    }
+  }
+
+  // 空状态
+  &__empty-block {
+    padding: $space-16 $space-8;
+  }
+
+  // 去除默认边框
+  &--border {
+    &::after,
+    &::before {
+      display: none;
+    }
+
+    td,
+    th {
+      border-right: 1px solid $table-border;
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+}
+
+// ========================================
+// Dialog Overrides
+// ========================================
+.el-dialog {
+  border-radius: $radius-xl;
+  box-shadow: $shadow-xl;
+
+  &__header {
+    padding: $space-6;
+    border-bottom: 1px solid $border-light;
+  }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $font-semibold;
+    color: $text-primary;
+  }
+
+  &__body {
+    padding: $space-6;
+  }
+
+  &__footer {
+    padding: $space-4 $space-6;
+    border-top: 1px solid $border-light;
+  }
+}
+
+// ========================================
+// Form Overrides
+// ========================================
+.el-form {
+  &-item {
+    margin-bottom: $space-5;
+
+    &__label {
+      font-size: $text-base;
+      font-weight: $font-medium;
+      color: $text-primary;
+      line-height: 32px;
+    }
+
+    &__error {
+      font-size: $text-sm;
+      padding-top: 4px;
+    }
+  }
+}
+
+// ========================================
+// Select Overrides
+// ========================================
+.el-select {
+  &__wrapper {
+    border-radius: $radius-md;
+  }
+}
+
+.el-select-dropdown {
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-light;
+
+  &__item {
+    font-size: $text-base;
+    height: 36px;
+    line-height: 36px;
+    padding: 0 $space-4;
+
+    &:hover {
+      background-color: $bg-hover;
+    }
+
+    &.selected {
+      background-color: $primary-50;
+      color: $primary-700;
+      font-weight: $font-medium;
+    }
+  }
+}
+
+// ========================================
+// Dropdown Overrides
+// ========================================
+.el-dropdown-menu {
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-light;
+  padding: $space-1;
+
+  &__item {
+    font-size: $text-base;
+    padding: $space-2 $space-4;
+    border-radius: $radius-sm;
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: $bg-hover;
+      color: $primary-600;
+    }
+  }
+}
+
+// ========================================
+// Message Overrides
+// ========================================
+.el-message {
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-light;
+  padding: $space-4 $space-5;
+  min-width: 320px;
+
+  &__icon {
+    font-size: 18px;
+  }
+
+  &__content {
+    font-size: $text-base;
+    color: $text-primary;
+  }
+}
+
+// ========================================
+// Tag Overrides
+// ========================================
+.el-tag {
+  border-radius: $radius-sm;
+  font-weight: $font-medium;
+  font-size: $text-sm;
+  height: 24px;
+  padding: 0 $space-2;
+  border: none;
+
+  &--small {
+    height: 20px;
+    font-size: $text-xs;
+  }
+
+  &--large {
+    height: 28px;
+    padding: 0 $space-3;
+  }
+}
+
+// ========================================
+// Pagination Overrides
+// ========================================
+.el-pagination {
+  font-weight: $font-normal;
+
+  button,
+  .el-pager li {
+    border-radius: $radius-sm;
+    font-weight: $font-medium;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $primary-600;
+    }
+
+    &.active {
+      background-color: $primary-600;
+      color: white;
+    }
+  }
+}
+
+// ========================================
+// Drawer Overrides
+// ========================================
+.el-drawer {
+  &__header {
+    padding: $space-6;
+    border-bottom: 1px solid $border-light;
+    margin-bottom: 0;
+  }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $font-semibold;
+    color: $text-primary;
+  }
+
+  &__body {
+    padding: $space-6;
+  }
+}
+
+// ========================================
+// Tabs Overrides
+// ========================================
+.el-tabs {
+  &__header {
+    margin-bottom: $space-6;
+  }
+
+  &__item {
+    font-size: $text-base;
+    font-weight: $font-medium;
+    color: $text-secondary;
+    padding: $space-3 $space-5;
+    height: 40px;
+    line-height: 40px;
+
+    &:hover {
+      color: $primary-600;
+    }
+
+    &.is-active {
+      color: $primary-600;
+    }
+  }
+
+  &__active-bar {
+    background-color: $primary-600;
+    height: 3px;
+  }
+}
+
+// ========================================
+// Card Overrides
+// ========================================
+.el-card {
+  border-radius: $card-radius;
+  border: 1px solid $border-light;
+  box-shadow: $shadow-xs;
+
+  &__header {
+    padding: $space-5 $space-6;
+    border-bottom: 1px solid $border-light;
+    font-weight: $font-semibold;
+    font-size: $text-lg;
+    color: $text-primary;
+  }
+
+  &__body {
+    padding: $space-6;
+  }
+}
+
+// ========================================
+// Loading Overrides
+// ========================================
+.el-loading-mask {
+  background-color: rgba(255, 255, 255, 0.9);
+
+  .el-loading-spinner {
+    .circular {
+      width: 42px;
+      height: 42px;
+    }
+
+    .path {
+      stroke: $primary-600;
+      stroke-width: 3;
+    }
+
+    .el-loading-text {
+      color: $text-secondary;
+      font-size: $text-base;
+      margin-top: $space-3;
+    }
+  }
+}
+
+// ========================================
+// Checkbox & Radio Overrides
+// ========================================
+.el-checkbox {
+  &__inner {
+    border-radius: $radius-xs;
+  }
+
+  &__label {
+    font-size: $text-base;
+    color: $text-primary;
+  }
+}
+
+.el-radio {
+  &__label {
+    font-size: $text-base;
+    color: $text-primary;
+  }
+}
+
+// ========================================
+// Badge Overrides
+// ========================================
+.el-badge {
+  &__content {
+    border-radius: $radius-full;
+    font-weight: $font-medium;
+    font-size: $text-xs;
+  }
+}
+
+// ========================================
+// Tooltip & Popover Overrides
+// ========================================
+.el-tooltip__popper,
+.el-popover {
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-light;
+}
+
+.el-popover {
+  padding: $space-4;
+}
+
+// ========================================
+// Empty Overrides
+// ========================================
+.el-empty {
+  padding: $space-16 $space-8;
+
+  &__image {
+    width: 160px;
+    height: 160px;
+  }
+
+  &__description {
+    font-size: $text-base;
+    color: $text-tertiary;
+    margin-top: $space-4;
+  }
+}
