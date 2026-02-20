@@ -23,7 +23,17 @@ public class Project {
     
     @Column(name = "org_id")
     private Long orgId;
-    
+
+    @Column(name = "description", length = 1000)
+    private String description;
+
+    @Column(name = "tag_color", length = 20)
+    private String tagColor;
+
+    @Lob
+    @Column(name = "cover_url")
+    private String coverUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ProjectStatus status = ProjectStatus.ACTIVE;
@@ -116,5 +126,29 @@ public class Project {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTagColor() {
+        return tagColor;
+    }
+
+    public void setTagColor(String tagColor) {
+        this.tagColor = tagColor;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

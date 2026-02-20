@@ -8,8 +8,10 @@ import com.costsystem.modules.costform.repository.FormVersionRepository;
 import com.costsystem.modules.costproject.repository.ProjectMemberRepository;
 import com.costsystem.modules.costproject.repository.ProjectRepository;
 import com.costsystem.modules.costworkflow.dto.TaskInfo;
+import com.costsystem.modules.costworkflow.dto.WorkflowDefinitionInfo;
 import com.costsystem.modules.costworkflow.dto.WorkflowDetailInfo;
 import com.costsystem.modules.costworkflow.dto.WorkflowInstanceInfo;
+import com.costsystem.modules.costworkflow.dto.WorkflowNodeConfig;
 import com.costsystem.modules.costworkflow.entity.WorkflowInstance;
 import com.costsystem.modules.costworkflow.entity.WorkflowTask;
 import com.costsystem.modules.costworkflow.repository.WorkflowInstanceRepository;
@@ -39,19 +41,22 @@ public class WorkflowService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final FormVersionRepository formVersionRepository;
+    private final WorkflowDefinitionService definitionService;
 
     public WorkflowService(WorkflowInstanceRepository instanceRepository,
                            WorkflowTaskRepository taskRepository,
                            ProjectMemberRepository projectMemberRepository,
                            UserRepository userRepository,
                            ProjectRepository projectRepository,
-                           FormVersionRepository formVersionRepository) {
+                           FormVersionRepository formVersionRepository,
+                           WorkflowDefinitionService definitionService) {
         this.instanceRepository = instanceRepository;
         this.taskRepository = taskRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.formVersionRepository = formVersionRepository;
+        this.definitionService = definitionService;
     }
 
     @Transactional
@@ -59,44 +64,25 @@ public class WorkflowService {
         User initiator = userRepository.findById(initiatorId)
                 .orElseThrow(() -> new BusinessException("用户不存在"));
 
+        WorkflowDefinitionInfo definition = definitionService.getActiveDefinition(projectId);
+        List<WorkflowNodeConfig> nodes = definition.getNodes();
+        if (nodes == null || nodes.isEmpty()) {
+            throw new BusinessException("未配置审批流程");
+        }
+        WorkflowNodeConfig firstNode = nodes.get(0);
+
         WorkflowInstance instance = new WorkflowInstance();
         instance.setProjectId(projectId);
         instance.setVersionId(versionId);
         instance.setProcessInstanceId(UUID.randomUUID().toString().replace("-", ""));
         instance.setProcessDefinitionKey("COST_APPROVAL");
-        instance.setProcessName("成本计划审批");
+        instance.setProcessName(definition.getName());
         instance.setStatus(WorkflowInstance.WorkflowStatus.RUNNING);
         instance.setInitiatorId(initiator.getId());
         instance.setInitiatorName(initiator.getUsername());
         instance = instanceRepository.save(instance);
 
-        List<Long> approverIds = projectMemberRepository.findUserIdsByProjectIdAndProjectRole(projectId, "APPROVER");
-        if (approverIds.isEmpty()) {
-            approverIds = projectMemberRepository.findUserIdsByProjectIdAndProjectRole(projectId, "PROJECT_ADMIN");
-        }
-        if (approverIds.isEmpty()) {
-            throw new BusinessException("未配置审批人员");
-        }
-
-        Long assigneeId = approverIds.get(0);
-        String candidate = approverIds.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(",", ",", ","));
-
-        WorkflowTask task = new WorkflowTask();
-        task.setWorkflowInstanceId(instance.getId());
-        task.setProjectId(projectId);
-        task.setVersionId(versionId);
-        task.setTaskId(UUID.randomUUID().toString().replace("-", ""));
-        task.setTaskName("版本审批");
-        task.setTaskDescription("成本计划版本审批");
-        task.setTaskType(WorkflowTask.TaskType.APPROVE);
-        task.setStatus(WorkflowTask.TaskStatus.PENDING);
-        task.setAssigneeId(assigneeId);
-        task.setAssigneeName(userRepository.findById(assigneeId).map(User::getUsername).orElse(null));
-        task.setCandidateUserIds(candidate);
-        task.setTaskCreateTime(LocalDateTime.now());
-        return taskRepository.save(task);
+        return taskRepository.save(buildTask(instance, projectId, versionId, firstNode));
     }
 
     @Transactional
@@ -109,6 +95,16 @@ public class WorkflowService {
 
         WorkflowInstance instance = instanceRepository.findById(task.getWorkflowInstanceId())
                 .orElseThrow(() -> new BusinessException("流程实例不存在"));
+
+        if (result == WorkflowTask.TaskResult.APPROVED) {
+            WorkflowDefinitionInfo definition = definitionService.getActiveDefinition(task.getProjectId());
+            WorkflowNodeConfig nextNode = resolveNextNode(definition, task);
+            if (nextNode != null) {
+                taskRepository.save(buildTask(instance, task.getProjectId(), task.getVersionId(), nextNode));
+                return;
+            }
+        }
+
         instance.setStatus(WorkflowInstance.WorkflowStatus.COMPLETED);
         instance.setResult(result == WorkflowTask.TaskResult.APPROVED
                 ? WorkflowInstance.WorkflowResult.APPROVED
@@ -146,16 +142,25 @@ public class WorkflowService {
         ensureProjectAccess(version.getProjectId(), userId);
 
         WorkflowInstance instance = instanceRepository.findByVersionId(versionId).orElse(null);
-        List<TaskInfo> tasks = taskRepository.findByVersionIdOrderByTaskCreateTimeDesc(versionId)
-                .stream()
+        List<WorkflowTask> taskEntities = taskRepository.findByVersionIdOrderByTaskCreateTimeDesc(versionId);
+        List<TaskInfo> tasks = taskEntities.stream()
                 .map(this::toTaskInfo)
                 .collect(Collectors.toList());
+
+        WorkflowDefinitionInfo definition = definitionService.getActiveDefinition(version.getProjectId());
+        WorkflowNodeConfig currentNode = resolveCurrentNode(definition, taskEntities);
+        boolean myPending = taskEntities.stream()
+                .anyMatch(task -> task.getStatus() == WorkflowTask.TaskStatus.PENDING && isCandidate(task, userId));
 
         return new WorkflowDetailInfo(
                 versionId,
                 version.getProjectId(),
                 instance == null ? null : toWorkflowInstanceInfo(instance),
-                tasks
+                tasks,
+                definition,
+                currentNode != null ? currentNode.getNodeKey() : null,
+                currentNode != null ? currentNode.getNodeName() : null,
+                myPending
         );
     }
 
@@ -292,4 +297,99 @@ public class WorkflowService {
                 instance.getEndTime()
         );
     }
+
+    private WorkflowTask buildTask(WorkflowInstance instance, Long projectId, Long versionId, WorkflowNodeConfig node) {
+        String roleCode = node.getRoleCode();
+        List<Long> approverIds = projectMemberRepository.findUserIdsByProjectIdAndProjectRole(projectId, roleCode);
+        if (approverIds.isEmpty()) {
+            approverIds = projectMemberRepository.findUserIdsByProjectIdAndProjectRole(projectId, "PROJECT_ADMIN");
+        }
+        if (approverIds.isEmpty()) {
+            throw new BusinessException("未配置审批人员");
+        }
+
+        Long assigneeId = approverIds.get(0);
+        String candidate = approverIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(",", ",", ","));
+
+        WorkflowTask task = new WorkflowTask();
+        task.setWorkflowInstanceId(instance.getId());
+        task.setProjectId(projectId);
+        task.setVersionId(versionId);
+        task.setTaskId(UUID.randomUUID().toString().replace("-", ""));
+        task.setTaskName(node.getNodeName());
+        task.setTaskDescription("nodeKey=" + node.getNodeKey() + ";nodeOrder=" + node.getOrderNo());
+        task.setTaskType(mapTaskType(node.getTaskType()));
+        task.setStatus(WorkflowTask.TaskStatus.PENDING);
+        task.setAssigneeId(assigneeId);
+        task.setAssigneeName(userRepository.findById(assigneeId).map(User::getUsername).orElse(null));
+        task.setCandidateUserIds(candidate);
+        task.setTaskCreateTime(LocalDateTime.now());
+        return task;
+    }
+
+    private WorkflowNodeConfig resolveNextNode(WorkflowDefinitionInfo definition, WorkflowTask task) {
+        if (definition == null || definition.getNodes() == null || definition.getNodes().isEmpty()) {
+            return null;
+        }
+        int currentOrder = parseNodeOrder(task);
+        for (WorkflowNodeConfig node : definition.getNodes()) {
+            if (node.getOrderNo() != null && node.getOrderNo() == currentOrder + 1) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private WorkflowNodeConfig resolveCurrentNode(WorkflowDefinitionInfo definition, List<WorkflowTask> tasks) {
+        if (definition == null || definition.getNodes() == null || definition.getNodes().isEmpty()) {
+            return null;
+        }
+        WorkflowTask pending = tasks.stream()
+                .filter(task -> task.getStatus() == WorkflowTask.TaskStatus.PENDING)
+                .reduce((first, second) -> first)
+                .orElse(null);
+        if (pending != null) {
+            int order = parseNodeOrder(pending);
+            for (WorkflowNodeConfig node : definition.getNodes()) {
+                if (node.getOrderNo() != null && node.getOrderNo() == order) {
+                    return node;
+                }
+                if (node.getNodeName() != null && node.getNodeName().equals(pending.getTaskName())) {
+                    return node;
+                }
+            }
+        }
+        return definition.getNodes().get(0);
+    }
+
+    private int parseNodeOrder(WorkflowTask task) {
+        if (task.getTaskDescription() == null) {
+            return 1;
+        }
+        String[] parts = task.getTaskDescription().split(";");
+        for (String part : parts) {
+            if (part.startsWith("nodeOrder=")) {
+                try {
+                    return Integer.parseInt(part.replace("nodeOrder=", "").trim());
+                } catch (NumberFormatException ignored) {
+                    return 1;
+                }
+            }
+        }
+        return 1;
+    }
+
+    private WorkflowTask.TaskType mapTaskType(String taskType) {
+        if (taskType == null) {
+            return WorkflowTask.TaskType.APPROVE;
+        }
+        try {
+            return WorkflowTask.TaskType.valueOf(taskType.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return WorkflowTask.TaskType.APPROVE;
+        }
+    }
 }
+

@@ -48,6 +48,12 @@ public class FormVersion {
 
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
+
+    @Column(name = "seal_pos_x")
+    private Double sealPosX;
+
+    @Column(name = "seal_pos_y")
+    private Double sealPosY;
     
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -128,6 +134,22 @@ public class FormVersion {
 
     public void setLockTime(LocalDateTime lockTime) {
         this.lockTime = lockTime;
+    }
+
+    public Double getSealPosX() {
+        return sealPosX;
+    }
+
+    public void setSealPosX(Double sealPosX) {
+        this.sealPosX = sealPosX;
+    }
+
+    public Double getSealPosY() {
+        return sealPosY;
+    }
+
+    public void setSealPosY(Double sealPosY) {
+        this.sealPosY = sealPosY;
     }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }

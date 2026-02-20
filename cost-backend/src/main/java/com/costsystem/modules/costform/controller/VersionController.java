@@ -2,6 +2,7 @@ package com.costsystem.modules.costform.controller;
 
 import com.costsystem.common.annotation.RequirePerm;
 import com.costsystem.common.dto.ApiResponse;
+import com.costsystem.modules.costform.dto.SealPositionRequest;
 import com.costsystem.modules.costform.dto.VersionCreateRequest;
 import com.costsystem.modules.costform.dto.VersionInfo;
 import com.costsystem.modules.costform.service.VersionService;
@@ -113,5 +114,16 @@ public class VersionController {
             @PathVariable Long versionId) {
         versionService.archiveVersion(currentUserId, versionId);
         return ApiResponse.success();
+    }
+
+    @PutMapping("/versions/{versionId}/seal-position")
+    @Operation(summary = "更新盖章位置")
+    @RequirePerm("SEAL_EXECUTE")
+    public ApiResponse<VersionInfo> updateSealPosition(
+            @AuthenticationPrincipal Long currentUserId,
+            @PathVariable Long versionId,
+            @RequestBody SealPositionRequest request) {
+        VersionInfo version = versionService.updateSealPosition(currentUserId, versionId, request.getSealPosX(), request.getSealPosY());
+        return ApiResponse.success(version);
     }
 }

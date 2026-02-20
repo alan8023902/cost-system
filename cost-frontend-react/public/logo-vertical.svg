@@ -1,0 +1,27 @@
+<!-- 竖版 Logo：图形在上，文字在下 -->
+<svg width="120" height="140" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 图形部分 -->
+  <g id="icon" transform="translate(36, 10)">
+    <!-- 立方体 -->
+    <path d="M24 8L36 14V26L24 32L12 26V14L24 8Z" fill="#3B82F6" opacity="0.9"/>
+    <path d="M24 8L36 14L24 20L12 14L24 8Z" fill="#60A5FA"/>
+    <path d="M24 20V32L12 26V14L24 20Z" fill="#2563EB"/>
+
+    <!-- 图表元素 -->
+    <path d="M18 22L20 20L22 21L24 18" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="24" cy="18" r="1.5" fill="white"/>
+  </g>
+
+  <!-- 文字部分 -->
+  <g id="text">
+    <text x="60" y="70" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" font-weight="600" fill="#111827">
+      建材成本管理
+    </text>
+    <text x="60" y="88" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9" font-weight="400" fill="#6B7280" letter-spacing="0.5">
+      COST MANAGEMENT
+    </text>
+    <text x="60" y="100" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9" font-weight="400" fill="#6B7280" letter-spacing="0.5">
+      SYSTEM
+    </text>
+  </g>
+</svg>

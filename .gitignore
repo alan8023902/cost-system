@@ -1,7 +1,81 @@
-﻿# Local build artifacts
-cost-frontend/node_modules/
-cost-frontend/dist/
-cost-backend/target/
-cost-backend/logs/
-deploy/dist/
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# =========================
+# Logs
+# =========================
+logs/
 *.log
+*.log.*
+*.gz
+*.zip
+
+# =========================
+# Java / Maven
+# =========================
+**/target/
+**/out/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+**/.cache/
+**/.next/
+**/.turbo/
+**/.vite/
+
+# =========================
+# Env / Secret
+# =========================
+.env
+.env.local
+.env.production
+.env.development
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# =========================
+# Misc / Temp
+# =========================
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.patch
+*.cache
+*.pid
+*.seed
+*.tgz
+
+# =========================
+# Project specific
+# =========================
+# keep .codebuddy (do NOT delete)
+.codebuddy/
+# local export artifacts
+**/export/
+**/exports/
+**/files/

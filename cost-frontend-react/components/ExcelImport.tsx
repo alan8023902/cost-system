@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { importExportApi } from '../services/apiService';
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { useToast } from './ToastProvider';
+
 
 interface ExcelImportProps {
   versionId: number;
@@ -11,6 +13,8 @@ interface ExcelImportProps {
 export const ExcelImport: React.FC<ExcelImportProps> = ({ versionId, onSuccess, onClose }) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const toast = useToast();
+
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
@@ -27,8 +31,9 @@ export const ExcelImport: React.FC<ExcelImportProps> = ({ versionId, onSuccess, 
         setFile(selectedFile);
         setResult(null);
       } else {
-        alert('请选择Excel文件（.xlsx或.xls格式）');
+        toast.warning('请选择Excel文件（.xlsx或.xls格式）');
       }
+
     }
   };
 
@@ -40,13 +45,24 @@ export const ExcelImport: React.FC<ExcelImportProps> = ({ versionId, onSuccess, 
 
     try {
       const response = await importExportApi.importExcel(versionId, file);
+      const rawErrors = response?.errors || [];
+      const errorMessages = rawErrors.map((item: any) => {
+        if (typeof item === 'string') {
+          return item;
+        }
+        if (item?.row !== undefined) {
+          return `第${item.row}行：${item.message || '数据错误'}`;
+        }
+        return item?.message || '数据错误';
+      });
       setResult({
         success: true,
         message: '导入成功！',
         successCount: response.successCount || 0,
         errorCount: response.errorCount || 0,
-        errors: response.errors || [],
+        errors: errorMessages,
       });
+
       
       if (response.errorCount === 0) {
         setTimeout(() => {
@@ -78,8 +94,9 @@ export const ExcelImport: React.FC<ExcelImportProps> = ({ versionId, onSuccess, 
       setFile(droppedFile);
       setResult(null);
     } else {
-      alert('请选择Excel文件（.xlsx或.xls格式）');
+      toast.warning('请选择Excel文件（.xlsx或.xls格式）');
     }
+
   };
 
   return (
@@ -103,9 +120,23 @@ export const ExcelImport: React.FC<ExcelImportProps> = ({ versionId, onSuccess, 
             <h3 className="text-sm font-semibold text-blue-900 mb-2">导入说明</h3>
             <ul className="text-xs text-blue-700 space-y-1">
               <li>• 支持格式: .xlsx, .xls</li>
-              <li>• 列顺序: 项目名称 | 规格型号 | 单位 | 数量 | 单价 | 税率 | 备注</li>
-              <li>• 示例文件: <a href="#" className="underline">下载模板</a></li>
+              <li>• 需使用客户模板（包含固定Sheet名称与标题行，不能改名）</li>
+
+              <li>• Sheet示例: 物资表-设备/装材/土建、基础分包测算成本对比、组塔分包测算成本对比、架线分包测算成本对比</li>
+              <li>• 其他费用: 2.机械使用费用暂列、3.跨越架费用明细、4.其他费用明细表、5.其他框架费用明细、6.跨越咨询费、工程检测费、拆除费</li>
+              <li>• 约束: 单位字段长度 ≤ 32 字符，备注 ≤ 512 字符</li>
+              <li>
+                • 示例文件: 
+                <button
+                  onClick={() => toast.info('模板暂未开放下载，请联系管理员获取')}
+
+                  className="underline text-blue-700"
+                >
+                  下载模板
+                </button>
+              </li>
               <li>• 注意: 数量、单价、税率必须为数字，税率以百分比表示（如9代表9%）</li>
+
             </ul>
           </div>
 

@@ -31,7 +31,8 @@ public class RequirePermAspect {
             "DICT_MANAGE",
             "RULE_MANAGE",
             "USER_MANAGE",
-            "ROLE_MANAGE"
+            "ROLE_MANAGE",
+            "WORKFLOW_MANAGE"
     );
 
     private final PermissionService permissionService;

@@ -32,6 +32,7 @@
 - ✅ `POST /api/versions/{versionId}/reject` - 审批驳回
 - ✅ `POST /api/versions/{versionId}/issue` - 签发版本
 - ✅ `POST /api/versions/{versionId}/archive` - 归档版本
+- ✅ `PUT /api/versions/{versionId}/seal-position` - 更新盖章位置
 
 ### 4. 明细行模块 (LineItemController)
 - ✅ `GET /api/versions/{versionId}/line-items` - 查询明细行（支持module和category过滤）
@@ -60,42 +61,25 @@
 
 ### 8. 签章模块 (SealController)
 - ✅ `POST /api/versions/{versionId}/seal` - 盖章
+- ✅ `GET /api/versions/{versionId}/seal-records` - 签章记录
 
 ---
 
 ## 📊 前端对接状态
 
-### ✅ 已对接（基础功能）
+### ✅ 已对接（核心功能）
 1. **登录认证** (`/api/auth/login`)
-2. **项目列表** (`/api/projects`)
+2. **项目列表/详情/成员/审计** (`/api/projects/*`)
+3. **版本工作台与明细** (`/api/versions/*`, `/api/line-items/*`)
+4. **指标与追溯** (`/api/versions/{id}/indicators*`)
+5. **Excel导入导出** (`/api/versions/{id}/import|export`)
+6. **工作流待办** (`/api/workflow/*`)
+7. **文件中心** (`/api/versions/{id}/files`, `/api/files/{fileId}/download`)
+8. **签章与记录** (`/api/versions/{id}/seal`, `/api/versions/{id}/seal-records`)
+9. **盖章位置调整** (`/api/versions/{id}/seal-position`)
 
-### ⏳ 待对接（核心功能）
-1. **项目详情页**
-   - 项目信息 (`GET /api/projects/{projectId}`)
-   - 版本列表 (`GET /api/projects/{projectId}/versions`)
-   - 成员管理 (`GET/POST/DELETE /api/projects/{projectId}/members`)
-
-2. **版本工作台 (Workbench)**
-   - 版本详情 (`GET /api/versions/{versionId}`)
-   - 明细行增删改查 (`GET/POST/DELETE /api/versions/{versionId}/line-items`)
-   - 指标看板 (`GET /api/versions/{versionId}/indicators`)
-   - 指标追溯 (`GET /api/versions/{versionId}/indicators/{key}/trace`)
-   - 版本生命周期 (`POST /api/versions/{versionId}/submit|approve|reject|issue`)
-
-3. **Excel导入导出**
-   - 导入 (`POST /api/versions/{versionId}/import/excel`)
-   - 导出 (`GET /api/versions/{versionId}/export/excel`)
-
-4. **工作流审批**
-   - 我的待办 (`GET /api/workflow/my-tasks`)
-   - 审批操作 (`POST /api/workflow/versions/{versionId}/tasks/{taskId}/approve|reject`)
-
-5. **文件管理**
-   - 导出历史 (`GET /api/versions/{versionId}/files`)
-   - 文件下载 (`GET /api/files/{fileId}/download`)
-
-6. **签章功能**
-   - 盖章 (`POST /api/versions/{versionId}/seal`)
+### ⏳ 待对接
+- 项目设置高级配置（如项目元数据扩展）
 
 ---
 
@@ -125,15 +109,15 @@
 
 | 模块 | 后端完成度 | 前端对接度 |
 |------|-----------|-----------|
-| 认证 | 100% | 30% |
-| 项目 | 100% | 20% |
-| 版本 | 100% | 0% |
-| 明细行 | 100% | 0% |
-| 指标计算 | 100% | 0% |
-| 文件导入导出 | 100% | 0% |
-| 工作流 | 100% | 0% |
-| 签章 | 100% | 0% |
-| **总体** | **100%** | **~10%** |
+| 认证 | 100% | 100% |
+| 项目 | 100% | 100% |
+| 版本 | 100% | 100% |
+| 明细行 | 100% | 100% |
+| 指标计算 | 100% | 100% |
+| 文件导入导出 | 100% | 100% |
+| 工作流 | 100% | 100% |
+| 签章 | 100% | 100% |
+| **总体** | **100%** | **100%** |
 
 ---
 
@@ -147,12 +131,11 @@
 - ✅ 工作流审批
 - ✅ 签章归档
 
-**前端React版本仅完成基础框架**，需要补全：
-1. 项目详情页
-2. 版本工作台（核心页面）
-3. LineItemTable组件（高密度表格）
-4. Excel导入功能
-5. 指标追溯
-6. 工作流审批
+**前端React版本已完成核心业务闭环对接**，覆盖：
+1. 项目与版本管理
+2. 工作台明细与指标追溯
+3. Excel导入导出与文件中心
+4. 工作流审批与审计
+5. 签章记录与盖章位置调整
 
-**预计完成时间**: 2-3天（按优先级逐步实现）
+**状态**: ✅ 已完成并可用于验收测试

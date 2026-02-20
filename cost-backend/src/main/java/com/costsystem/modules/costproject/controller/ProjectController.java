@@ -9,8 +9,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,6 +36,17 @@ public class ProjectController {
             @Valid @RequestBody ProjectCreateRequest request) {
         ProjectInfo project = projectService.createProject(currentUserId, request);
         return ApiResponse.success(project);
+    }
+
+    @PostMapping(value = "/import/excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "导入Excel并自动创建项目与版本")
+    @com.costsystem.common.annotation.RequirePerm("PROJECT_CREATE")
+    public ApiResponse<ProjectImportResult> importProjectFromExcel(
+            @AuthenticationPrincipal Long currentUserId,
+            @RequestPart("project") @Valid ProjectCreateRequest request,
+            @RequestPart("file") MultipartFile file) {
+        ProjectImportResult result = projectService.importProjectFromExcel(currentUserId, request, file);
+        return ApiResponse.success(result);
     }
     
     @PutMapping("/{projectId}")

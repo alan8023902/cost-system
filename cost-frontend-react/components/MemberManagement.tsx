@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, UserPlus, Shield, Edit, Trash2, Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, UserPlus, Edit, Trash2 } from 'lucide-react';
+import { projectApi } from '../services/apiService';
+import { useToast } from './ToastProvider';
+
+
 
 interface Member {
   userId: number;
@@ -36,86 +40,61 @@ export const MemberManagement: React.FC<MemberManagementProps> = ({
   const [newMemberUsername, setNewMemberUsername] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
 
   const handleAddMember = async () => {
     if (!newMemberUsername || selectedPermissions.length === 0) {
-      alert('请输入用户名并至少选择一个权限');
+      toast.warning('请输入用户名并至少选择一个权限');
       return;
     }
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/projects/${projectId}/members`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          username: newMemberUsername,
-          permissions: selectedPermissions,
-        }),
+      await projectApi.addMember(projectId, {
+        username: newMemberUsername,
+        permissions: selectedPermissions,
       });
-
-      if (response.ok) {
-        setShowAddModal(false);
-        setNewMemberUsername('');
-        setSelectedPermissions([]);
-        onRefresh();
-        alert('成员添加成功');
-      } else {
-        const error = await response.json();
-        alert(error.message || '添加失败');
-      }
-    } catch (error) {
+      setShowAddModal(false);
+      setNewMemberUsername('');
+      setSelectedPermissions([]);
+      onRefresh();
+      toast.success('成员添加成功');
+    } catch (error: any) {
       console.error('Failed to add member:', error);
-      alert('添加失败');
+      toast.error(error?.message || '添加失败');
     } finally {
       setLoading(false);
     }
+
   };
+
 
   const handleUpdatePermissions = async () => {
     if (!selectedMember || selectedPermissions.length === 0) {
-      alert('请至少选择一个权限');
+      toast.warning('请至少选择一个权限');
       return;
     }
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `/api/projects/${projectId}/members/${selectedMember.userId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            permissions: selectedPermissions,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setShowEditModal(false);
-        setSelectedMember(null);
-        setSelectedPermissions([]);
-        onRefresh();
-        alert('权限更新成功');
-      } else {
-        const error = await response.json();
-        alert(error.message || '更新失败');
-      }
-    } catch (error) {
+      await projectApi.updateMemberPermissions(projectId, selectedMember.userId, {
+        permissions: selectedPermissions,
+      });
+      setShowEditModal(false);
+      setSelectedMember(null);
+      setSelectedPermissions([]);
+      onRefresh();
+      toast.success('权限更新成功');
+    } catch (error: any) {
       console.error('Failed to update permissions:', error);
-      alert('更新失败');
+      toast.error(error?.message || '更新失败');
     } finally {
       setLoading(false);
     }
+
   };
+
 
   const handleRemoveMember = async (userId: number, username: string) => {
     if (!confirm(`确定要移除成员 ${username} 吗？`)) {
@@ -124,31 +103,18 @@ export const MemberManagement: React.FC<MemberManagementProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `/api/projects/${projectId}/members/${userId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        onRefresh();
-        alert('成员移除成功');
-      } else {
-        const error = await response.json();
-        alert(error.message || '移除失败');
-      }
-    } catch (error) {
+      await projectApi.removeMember(projectId, userId);
+      onRefresh();
+      toast.success('成员移除成功');
+    } catch (error: any) {
       console.error('Failed to remove member:', error);
-      alert('移除失败');
+      toast.error(error?.message || '移除失败');
     } finally {
       setLoading(false);
     }
+
   };
+
 
   const openEditModal = (member: Member) => {
     setSelectedMember(member);

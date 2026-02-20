@@ -1,6 +1,7 @@
 package com.costsystem.modules.costtemplate.service;
 
 import com.costsystem.common.exception.BusinessException;
+import com.costsystem.modules.costcalc.repository.CalcRuleRepository;
 import com.costsystem.modules.costtemplate.dto.TemplateUpdateRequest;
 import com.costsystem.modules.costtemplate.entity.Template;
 import com.costsystem.modules.costtemplate.repository.TemplateRepository;
@@ -24,12 +25,14 @@ class TemplateServiceTest {
 
     @Mock
     private TemplateRepository templateRepository;
+    @Mock
+    private CalcRuleRepository calcRuleRepository;
 
     private TemplateService templateService;
 
     @BeforeEach
     void setUp() {
-        templateService = new TemplateService(templateRepository);
+        templateService = new TemplateService(templateRepository, calcRuleRepository);
     }
 
     @Test

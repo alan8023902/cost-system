@@ -12,6 +12,15 @@ public class ProjectUpdateRequest {
     @NotBlank(message = "项目名称不能为空")
     @Size(max = 255, message = "项目名称长度不能超过255个字符")
     private String name;
+
+    @Size(max = 1000, message = "项目描述长度不能超过1000个字符")
+    private String description;
+
+    @Size(max = 20, message = "标签颜色长度不能超过20个字符")
+    private String tagColor;
+
+    @Size(max = 3000000, message = "封面数据过长")
+    private String coverUrl;
     
     private Long orgId;
     
@@ -30,5 +39,29 @@ public class ProjectUpdateRequest {
     
     public void setOrgId(Long orgId) {
         this.orgId = orgId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTagColor() {
+        return tagColor;
+    }
+
+    public void setTagColor(String tagColor) {
+        this.tagColor = tagColor;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

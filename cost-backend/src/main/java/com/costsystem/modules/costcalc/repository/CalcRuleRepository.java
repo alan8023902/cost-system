@@ -14,4 +14,6 @@ import java.util.List;
 public interface CalcRuleRepository extends JpaRepository<CalcRule, Long> {
 
     List<CalcRule> findByTemplateIdAndEnabledOrderByOrderNoAscIdAsc(Long templateId, Boolean enabled);
+
+    boolean existsByTemplateId(Long templateId);
 }

@@ -4,11 +4,14 @@ import com.costsystem.common.annotation.RequirePerm;
 import com.costsystem.common.dto.ApiResponse;
 import com.costsystem.modules.costfile.dto.FileInfoDto;
 import com.costsystem.modules.costfile.service.FileService;
+import com.costsystem.modules.costseal.dto.SealRecordDto;
 import com.costsystem.modules.costseal.service.SealService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 签章控制器
@@ -33,6 +36,15 @@ public class SealController {
             @AuthenticationPrincipal Long currentUserId,
             @PathVariable Long versionId) {
         return ApiResponse.success(fileService.toDto(sealService.sealVersion(currentUserId, versionId)));
+    }
+
+    @GetMapping("/versions/{versionId}/seal-records")
+    @Operation(summary = "签章记录")
+    @RequirePerm("FILE_DOWNLOAD")
+    public ApiResponse<List<SealRecordDto>> listSealRecords(
+            @AuthenticationPrincipal Long currentUserId,
+            @PathVariable Long versionId) {
+        return ApiResponse.success(sealService.listSealRecords(currentUserId, versionId));
     }
 
     @GetMapping("/seal/health")

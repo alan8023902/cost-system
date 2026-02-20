@@ -128,6 +128,8 @@ CREATE TABLE `form_version` (
   `issued_at` DATETIME NULL COMMENT '签发时间',
   `lock_owner` BIGINT NULL COMMENT '锁定人',
   `lock_time` DATETIME NULL COMMENT '锁定时间',
+  `seal_pos_x` DECIMAL(8,6) NULL COMMENT '盖章位置X(0-1)',
+  `seal_pos_y` DECIMAL(8,6) NULL COMMENT '盖章位置Y(0-1)',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_project_version` (`project_id`, `version_no`),

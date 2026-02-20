@@ -1,108 +1,278 @@
-
-import React from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Target, 
-  ShieldAlert, 
-  Coins, 
-  Layers, 
-  ChevronRight,
-  BarChart3
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import Layout from '../components/Layout';
+import TraceDrawer from '../components/TraceDrawer';
+import { formatIndicatorLabel } from '../constants';
+import { useToast } from '../components/ToastProvider';
+import { indicatorApi, projectApi, versionApi } from '../services/apiService';
+import { RefreshCcw, Calculator, Search } from 'lucide-react';
 
 const Indicators: React.FC = () => {
-  const groups = [
-    {
-      title: '成本管控指标',
-      metrics: [
-        { label: '毛利润率', value: '12.4%', trend: 'up', color: 'blue' },
-        { label: '目标利润偏差', value: '-0.5%', trend: 'down', color: 'emerald' },
-        { label: '项目结余', value: '¥1,245k', trend: 'up', color: 'indigo' },
-        { label: '盈亏平衡点', value: '82%', trend: 'neutral', color: 'slate' }
-      ]
-    },
-    {
-      title: '税务风险指标',
-      metrics: [
-        { label: '平均进项税率', value: '10.2%', trend: 'up', color: 'emerald' },
-        { label: '税负压力指数', value: '0.042', trend: 'down', color: 'amber' },
-        { label: '合规抵扣比例', value: '98.5%', trend: 'neutral', color: 'blue' },
-        { label: '潜在涉税风险点', value: '3', trend: 'down', color: 'red' }
-      ]
-    },
-    {
-      title: '物资供应效率',
-      metrics: [
-        { label: '集采覆盖率', value: '75.0%', trend: 'up', color: 'blue' },
-        { label: '合同签订率', value: '100%', trend: 'neutral', color: 'emerald' },
-        { label: '三价对比偏差', value: '2.4%', trend: 'down', color: 'slate' },
-        { label: '库存周转天数', value: '45d', trend: 'down', color: 'indigo' }
-      ]
-    }
-  ];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialVersionId = searchParams.get('versionId') || '';
+  const [projects, setProjects] = useState<any[]>([]);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [selectedVersionId, setSelectedVersionId] = useState('');
+  const [indicators, setIndicators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState('');
+  const [working, setWorking] = useState(false);
+  const [traceState, setTraceState] = useState<{ open: boolean; key: string; name: string }>(
+    { open: false, key: '', name: '' }
+  );
+  const toast = useToast();
 
-  const getTrendIcon = (trend: string) => {
-    if (trend === 'up') return <TrendingUp size={14} className="text-emerald-500" />;
-    if (trend === 'down') return <TrendingDown size={14} className="text-red-500" />;
-    return <ChevronRight size={14} className="text-slate-300" />;
+  const getLatestVersion = (list: any[]) => {
+    if (list.length === 0) return null;
+    return [...list].sort((a, b) => {
+      const versionNoDiff = Number(b.versionNo || 0) - Number(a.versionNo || 0);
+      if (versionNoDiff !== 0) return versionNoDiff;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    })[0];
   };
 
-  const getColorClass = (color: string) => {
-    switch (color) {
-      case 'blue': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'emerald': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      case 'amber': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'red': return 'bg-red-50 text-red-600 border-red-100';
-      case 'indigo': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-      default: return 'bg-slate-50 text-slate-600 border-slate-100';
+  const loadIndicators = async (versionId: string) => {
+    if (!versionId) return;
+    const data = await indicatorApi.list(versionId);
+    setIndicators(Array.isArray(data) ? data : []);
+  };
+
+  const init = async () => {
+    setLoading(true);
+    try {
+      const projectList = (await projectApi.list()) as any;
+      const projectArray = Array.isArray(projectList) ? projectList : projectList?.content || [];
+      setProjects(projectArray || []);
+
+      if (initialVersionId) {
+        const versionInfo = await versionApi.get(initialVersionId);
+        if (versionInfo?.projectId) {
+          const projectId = String(versionInfo.projectId);
+          setSelectedProjectId(projectId);
+          const versionList = await projectApi.getVersions(projectId);
+          setVersions(versionList || []);
+        }
+        setSelectedVersionId(initialVersionId);
+        await loadIndicators(initialVersionId);
+      } else if (projectArray && projectArray.length > 0) {
+        const projectId = String(projectArray[0].id);
+        setSelectedProjectId(projectId);
+        const versionList = await projectApi.getVersions(projectId);
+        setVersions(versionList || []);
+        const latest = getLatestVersion(versionList || []);
+        if (latest?.id) {
+          const versionId = String(latest.id);
+          setSelectedVersionId(versionId);
+          await loadIndicators(versionId);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (selectedVersionId) {
+      setSearchParams({ versionId: selectedVersionId });
+    }
+  }, [selectedVersionId, setSearchParams]);
+
+  const handleProjectChange = async (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setVersions([]);
+    setIndicators([]);
+    setSelectedVersionId('');
+    if (!projectId) return;
+    const versionList = await projectApi.getVersions(projectId);
+    setVersions(versionList || []);
+    const latest = getLatestVersion(versionList || []);
+    if (latest?.id) {
+      const versionId = String(latest.id);
+      setSelectedVersionId(versionId);
+      await loadIndicators(versionId);
+    }
+  };
+
+  const handleVersionChange = async (versionId: string) => {
+    setSelectedVersionId(versionId);
+    if (!versionId) return;
+    await loadIndicators(versionId);
+  };
+
+  const handleRecalculate = async () => {
+    if (!selectedVersionId) return;
+    setWorking(true);
+    try {
+      await indicatorApi.recalculate(selectedVersionId);
+      await loadIndicators(selectedVersionId);
+      toast.success('重算完成');
+    } catch (e: any) {
+      toast.error(e?.message || '重算失败');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const filteredIndicators = useMemo(() => {
+    const key = keyword.trim().toLowerCase();
+    if (!key) return indicators;
+    return indicators.filter((ind) => {
+      const label = formatIndicatorLabel(ind.indicatorKey, ind.indicatorName);
+      const content = `${ind.indicatorKey || ''} ${ind.indicatorName || ''} ${label || ''} ${ind.expression || ''}`.toLowerCase();
+      return content.includes(key);
+    });
+  }, [indicators, keyword]);
 
   return (
-    <div className="p-8 space-y-10 animate-in fade-in duration-500">
-      {groups.map((group, idx) => (
-        <div key={idx} className="space-y-4">
-          <div className="flex items-center justify-between">
-             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-               <div className="w-1 h-3 bg-blue-600 rounded-full mr-2"></div>
-               {group.title}
-             </h3>
-             <button className="text-[10px] font-bold text-blue-600 hover:underline">查看详细追溯</button>
+    <Layout title="指标看板" subtitle="指标展示与追溯分析">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
+            <select
+              value={selectedProjectId}
+              onChange={(e) => handleProjectChange(e.target.value)}
+              className="ui-input w-56"
+            >
+              <option value="">选择项目</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name || p.projectName || `项目${p.id}`}</option>
+              ))}
+            </select>
+            <select
+              value={selectedVersionId}
+              onChange={(e) => handleVersionChange(e.target.value)}
+              className="ui-input w-full sm:w-56"
+            >
+              <option value="">选择版本</option>
+              {versions.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.versionNo ? `V${v.versionNo}` : v.versionName || v.id} · {v.status || '-'}
+                </option>
+              ))}
+            </select>
+            <div className="relative">
+              <Search size={14} className="absolute left-2 top-2.5 text-slate-400" />
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="搜索指标键/名称/表达式"
+                className="ui-input w-full sm:w-64 pl-7"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {group.metrics.map((m, mIdx) => (
-              <div 
-                key={mIdx} 
-                className={`p-6 rounded-2xl border transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer group flex flex-col justify-between h-32 ${getColorClass(m.color)}`}
-              >
-                <div className="flex items-start justify-between">
-                  <span className="text-xs font-semibold opacity-80">{m.label}</span>
-                  <div className="p-1.5 bg-white/50 rounded-lg group-hover:scale-110 transition-transform">
-                    {getTrendIcon(m.trend)}
-                  </div>
-                </div>
-                <div className="flex items-baseline space-x-2">
-                   <span className="text-2xl font-black tracking-tight">{m.value}</span>
-                   <span className="text-[10px] font-bold opacity-60 uppercase">Unit / RT</span>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2">
+            <button className="ui-btn ui-btn-default gap-1" onClick={init}>
+              <RefreshCcw size={14} /> 刷新
+            </button>
+            <button
+              className="ui-btn ui-btn-primary gap-1"
+              onClick={handleRecalculate}
+              disabled={!selectedVersionId || working}
+            >
+              <Calculator size={14} /> 重算指标
+            </button>
           </div>
         </div>
-      ))}
 
-      {/* Summary Chart Area */}
-      <div className="bg-slate-50 rounded-2xl p-8 border border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-4 py-20">
-         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
-           <BarChart3 size={32} className="text-slate-300" />
-         </div>
-         <div>
-            <h4 className="text-sm font-bold text-slate-800">趋势分析组件正在载入...</h4>
-            <p className="text-xs text-slate-400 max-w-xs mt-1">系统正实时从当前版本数据中计算动态趋势曲线，请稍候</p>
-         </div>
+        <div className="sm:hidden space-y-2">
+          {loading ? (
+            <div className="text-center py-6 text-slate-400 text-sm">加载中...</div>
+          ) : (
+            filteredIndicators.map((ind) => (
+              <div key={ind.indicatorKey} className="bg-white border border-slate-200 rounded px-3 py-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{formatIndicatorLabel(ind.indicatorKey, ind.indicatorName)}</div>
+                    <div className="text-xs text-slate-400 font-mono">{ind.indicatorKey || '-'}</div>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-900">{ind.value ?? '-'}</div>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">表达式：{ind.expression || '-'}</div>
+                <div className="mt-1 text-xs text-slate-500">计算时间：{ind.calcTime ? new Date(ind.calcTime).toLocaleString() : '-'}</div>
+                <div className="mt-2">
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-default"
+                    onClick={() => setTraceState({
+                      open: true,
+                      key: ind.indicatorKey,
+                      name: formatIndicatorLabel(ind.indicatorKey, ind.indicatorName),
+                    })}
+                    disabled={!selectedVersionId}
+                  >
+                    追溯
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+          {!loading && filteredIndicators.length === 0 && (
+            <div className="text-center py-6 text-slate-400 text-sm">暂无指标数据</div>
+          )}
+        </div>
+
+        <div className="hidden sm:block ui-table-container">
+          <table className="ui-table">
+            <thead>
+              <tr>
+                <th>指标</th>
+                <th>指标名称</th>
+                <th>值</th>
+                <th>表达式</th>
+                <th>计算时间</th>
+                <th className="text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="text-center py-10 text-slate-400">加载中...</td></tr>
+              ) : filteredIndicators.map((ind) => (
+                <tr key={ind.indicatorKey} className="hover:bg-slate-50">
+                  <td>
+                    <div className="text-sm text-slate-900">{formatIndicatorLabel(ind.indicatorKey, ind.indicatorName)}</div>
+                    <div className="text-xs text-slate-400 font-mono">{ind.indicatorKey || '-'}</div>
+                  </td>
+                  <td>{formatIndicatorLabel(ind.indicatorKey, ind.indicatorName)}</td>
+                  <td className="font-semibold">{ind.value ?? '-'}</td>
+                  <td className="text-xs text-slate-500">{ind.expression || '-'}</td>
+                  <td className="text-xs text-slate-500">{ind.calcTime ? new Date(ind.calcTime).toLocaleString() : '-'}</td>
+                  <td className="text-center">
+                    <button
+                      className="ui-btn ui-btn-sm ui-btn-default"
+                      onClick={() => setTraceState({
+                        open: true,
+                        key: ind.indicatorKey,
+                        name: formatIndicatorLabel(ind.indicatorKey, ind.indicatorName),
+                      })}
+                      disabled={!selectedVersionId}
+                    >
+                      追溯
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {!loading && filteredIndicators.length === 0 && (
+                <tr><td colSpan={6} className="text-center py-10 text-slate-400">暂无指标数据</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <TraceDrawer
+        open={traceState.open}
+        versionId={Number(selectedVersionId)}
+        indicatorKey={traceState.key}
+        indicatorName={traceState.name}
+        onClose={() => setTraceState({ open: false, key: '', name: '' })}
+      />
+    </Layout>
   );
 };
 

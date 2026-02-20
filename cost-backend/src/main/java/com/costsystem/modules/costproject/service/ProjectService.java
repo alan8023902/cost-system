@@ -3,6 +3,11 @@ package com.costsystem.modules.costproject.service;
 import com.costsystem.common.exception.BusinessException;
 import com.costsystem.modules.costauth.repository.UserRepository;
 import com.costsystem.modules.costauth.service.PermissionService;
+import com.costsystem.modules.costform.dto.LineItemImportResult;
+import com.costsystem.modules.costform.dto.VersionCreateRequest;
+import com.costsystem.modules.costform.dto.VersionInfo;
+import com.costsystem.modules.costform.service.LineItemService;
+import com.costsystem.modules.costform.service.VersionService;
 import com.costsystem.modules.costproject.dto.*;
 import com.costsystem.modules.costproject.entity.Project;
 import com.costsystem.modules.costproject.entity.ProjectMember;
@@ -13,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -36,6 +42,12 @@ public class ProjectService {
 
     @Autowired
     private PermissionService permissionService;
+
+    @Autowired
+    private VersionService versionService;
+
+    @Autowired
+    private LineItemService lineItemService;
     
     /**
      * 创建项目
@@ -51,6 +63,9 @@ public class ProjectService {
         Project project = new Project();
         project.setCode(request.getCode());
         project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setTagColor(request.getTagColor());
+        project.setCoverUrl(request.getCoverUrl());
         project.setOrgId(request.getOrgId());
         project.setCreatedBy(currentUserId);
         project.setStatus(Project.ProjectStatus.ACTIVE);
@@ -67,6 +82,19 @@ public class ProjectService {
         
         return convertToProjectInfo(project);
     }
+
+    /**
+     * 上传Excel并自动创建项目+版本+明细
+     */
+    @Transactional
+    public ProjectImportResult importProjectFromExcel(Long currentUserId,
+                                                      ProjectCreateRequest request,
+                                                      MultipartFile file) {
+        ProjectInfo project = createProject(currentUserId, request);
+        VersionInfo version = versionService.createVersion(currentUserId, project.getId(), new VersionCreateRequest());
+        LineItemImportResult importResult = lineItemService.importExcel(currentUserId, version.getId(), file, null);
+        return new ProjectImportResult(project, version, importResult);
+    }
     
     /**
      * 更新项目
@@ -82,6 +110,9 @@ public class ProjectService {
         }
         
         project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setTagColor(request.getTagColor());
+        project.setCoverUrl(request.getCoverUrl());
         project.setOrgId(request.getOrgId());
         
         project = projectRepository.save(project);
@@ -223,16 +254,19 @@ public class ProjectService {
     }
     
     private ProjectInfo convertToProjectInfo(Project project) {
-        return new ProjectInfo(
-                project.getId(),
-                project.getCode(),
-                project.getName(),
-                project.getOrgId(),
-                project.getStatus().name(),
-                project.getCreatedBy(),
-                project.getCreatedAt(),
-                project.getUpdatedAt()
-        );
+        ProjectInfo info = new ProjectInfo();
+        info.setId(project.getId());
+        info.setCode(project.getCode());
+        info.setName(project.getName());
+        info.setDescription(project.getDescription());
+        info.setTagColor(project.getTagColor());
+        info.setCoverUrl(project.getCoverUrl());
+        info.setOrgId(project.getOrgId());
+        info.setStatus(project.getStatus().name());
+        info.setCreatedBy(project.getCreatedBy());
+        info.setCreatedAt(project.getCreatedAt());
+        info.setUpdatedAt(project.getUpdatedAt());
+        return info;
     }
     
     private ProjectMemberInfo convertToProjectMemberInfo(ProjectMember member) {

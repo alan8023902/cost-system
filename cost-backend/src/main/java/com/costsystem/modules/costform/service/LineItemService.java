@@ -344,6 +344,17 @@ public class LineItemService {
         return value == null ? null : String.valueOf(value);
     }
 
+    private boolean validateTextLength(String value, int max, int row, String label, LineItemImportResult result) {
+        if (value == null) {
+            return true;
+        }
+        if (value.length() > max) {
+            result.addError(row, label + "长度超过" + max + "字符");
+            return false;
+        }
+        return true;
+    }
+
     private void parseMaterialSheet(Workbook workbook,
                                     String sheetName,
                                     String categoryCode,
@@ -379,11 +390,27 @@ public class LineItemService {
             if (row == null) {
                 continue;
             }
+            int displayRow = i + 1;
             String name = getCellString(row, nameIdx, formatter);
             if (name == null || name.isBlank()) {
                 continue;
             }
             if (isSummaryRow(name)) {
+                continue;
+            }
+            String spec = getCellString(row, specIdx, formatter);
+            String unit = getCellString(row, unitIdx, formatter);
+            String remark = getCellString(row, remarkIdx, formatter);
+            if (!validateTextLength(name, 255, displayRow, "物资名称", result)) {
+                continue;
+            }
+            if (!validateTextLength(spec, 255, displayRow, "型号", result)) {
+                continue;
+            }
+            if (!validateTextLength(unit, 32, displayRow, "单位", result)) {
+                continue;
+            }
+            if (!validateTextLength(remark, 512, displayRow, "备注", result)) {
                 continue;
             }
             BigDecimal qty = getCellDecimal(row, qtyIdx, formatter);
@@ -402,14 +429,14 @@ public class LineItemService {
             item.setModuleCode(MODULE_MATERIAL);
             item.setCategoryCode(categoryCode);
             item.setName(name);
-            item.setSpec(getCellString(row, specIdx, formatter));
-            item.setUnit(getCellString(row, unitIdx, formatter));
+            item.setSpec(spec);
+            item.setUnit(unit);
             item.setQty(qty);
             BigDecimal price = controlPrice != null ? controlPrice : budgetPrice;
             BigDecimal amount = controlAmount != null ? controlAmount : budgetAmount;
             item.setPriceTax(price);
             item.setAmountTax(resolveAmount(qty, price, amount));
-            item.setRemark(getCellString(row, remarkIdx, formatter));
+            item.setRemark(remark);
             item.setSortNo(sortNo.getAndIncrement());
             item.setCreatedBy(userId);
             item.setUpdatedBy(userId);
@@ -464,17 +491,42 @@ public class LineItemService {
         if (headerRowIndex < 0) {
             return;
         }
+        Row headerRow = sheet.getRow(headerRowIndex);
+        if (headerRow != null) {
+            int headerUnitIdx = findColumnIndex(headerRow, formatter, "单位");
+            if (headerUnitIdx < 0) {
+                headerUnitIdx = findColumnIndex(headerRow, formatter, "计量单位");
+            }
+            if (headerUnitIdx >= 0) {
+                unitPos = new ColumnPosition(headerRowIndex, headerUnitIdx);
+            }
+        }
         for (int i = headerRowIndex + 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) {
                 continue;
             }
+            int displayRow = i + 1;
             String name = getCellString(row, namePos, formatter);
             String spec = getCellString(row, specPos, formatter);
             if ((name == null || name.isBlank()) && (spec == null || spec.isBlank())) {
                 continue;
             }
             if (name != null && isSummaryRow(name)) {
+                continue;
+            }
+            String unit = getCellString(row, unitPos, formatter);
+            String remark = getCellString(row, remarkPos, formatter);
+            if (!validateTextLength(name, 255, displayRow, "项目名称", result)) {
+                continue;
+            }
+            if (!validateTextLength(spec, 255, displayRow, "费用明细", result)) {
+                continue;
+            }
+            if (!validateTextLength(unit, 32, displayRow, "单位", result)) {
+                continue;
+            }
+            if (!validateTextLength(remark, 512, displayRow, "备注", result)) {
                 continue;
             }
             BigDecimal qty = getCellDecimal(row, qtyPos, formatter);
@@ -489,11 +541,11 @@ public class LineItemService {
             item.setCategoryCode(categoryCode);
             item.setName(name != null && !name.isBlank() ? name : spec);
             item.setSpec(spec);
-            item.setUnit(getCellString(row, unitPos, formatter));
+            item.setUnit(unit);
             item.setQty(qty);
             item.setPriceTax(price);
             item.setAmountTax(resolveAmount(qty, price, amount));
-            item.setRemark(getCellString(row, remarkPos, formatter));
+            item.setRemark(remark);
             item.setSortNo(sortNo.getAndIncrement());
             item.setCreatedBy(userId);
             item.setUpdatedBy(userId);

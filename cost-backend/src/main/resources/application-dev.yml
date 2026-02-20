@@ -1,12 +1,8 @@
-server:
-  port: 31943
-
-
+# 开发环境配置
 spring:
   application:
-    name: cost-system-backend-dev
-  
-  # MySQL Database Configuration for Development
+    name: cost-system-backend
+
   datasource:
     url: jdbc:mysql://localhost:3306/cost_system_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
@@ -21,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  # update模式：自动更新表结构，不会删除数据
+      ddl-auto: update  # 开发环境自动更新表结构
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true  # 开发环境显示SQL
@@ -36,9 +32,12 @@ spring:
         order_updates: true
 
   flyway:
-    enabled: false  # 禁用Flyway，使用JPA自动管理表结构
+    enabled: false
 
-  # Redis Configuration
+  sql:
+    init:
+      mode: never  # 开发环境使用JPA自动建表
+
   data:
     redis:
       host: localhost
@@ -52,11 +51,6 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-
-  jackson:
-    time-zone: Asia/Shanghai
-    date-format: yyyy-MM-dd HH:mm:ss
-    default-property-inclusion: NON_NULL
 
   security:
     user:
@@ -72,12 +66,10 @@ logging:
     org.springframework.data.redis: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/cost-system-dev.log
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,h2-console
   endpoint:
     health:
       show-details: always
@@ -88,14 +80,14 @@ cost-system:
     secret: cost-system-jwt-secret-key-2024-very-long-and-secure-dev
     expiration: 86400000  # 24小时
     refresh-expiration: 604800000  # 7天
-  
+
   file:
     upload-path: /tmp/cost-system-dev/uploads
     max-size: 100MB
-  
+
   workflow:
     enabled: true
-    
+
   audit:
     enabled: true
 

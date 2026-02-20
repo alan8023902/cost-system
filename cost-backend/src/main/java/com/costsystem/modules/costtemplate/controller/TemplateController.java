@@ -17,7 +17,7 @@ import java.util.List;
  * 模板控制器
  */
 @RestController
-@RequestMapping("/templates")
+@RequestMapping("/api/templates")
 @Tag(name = "模板管理", description = "模板查询与发布管理")
 public class TemplateController {
 

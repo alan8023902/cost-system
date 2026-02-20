@@ -11,6 +11,7 @@ import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
@@ -93,25 +94,35 @@ public class ExportService {
             PdfDocument pdfDocument = new PdfDocument(writer);
             Document document = new Document(pdfDocument);
             PdfFont font = resolveFont();
+            boolean unicodeTextSupported = font != null;
             if (font != null) {
                 document.setFont(font);
+            } else {
+                try {
+                    document.setFont(PdfFontFactory.createFont(StandardFonts.HELVETICA));
+                } catch (Exception ignored) {
+                    // keep iText default font
+                }
             }
 
-            document.add(new Paragraph("成本计划单").setFontSize(16f));
-            document.add(new Paragraph("版本: V" + version.getVersionNo() + "  导出时间: " + LocalDateTime.now()));
+            String title = unicodeTextSupported ? "成本计划单" : "Cost Plan";
+            String subtitle = "Version: V" + version.getVersionNo() + "  Exported At: " + LocalDateTime.now();
+            document.add(new Paragraph(title).setFontSize(16f));
+            document.add(new Paragraph(subtitle));
 
             float[] widths = new float[]{60, 80, 200, 120, 60, 60, 80, 90};
             Table table = new Table(widths);
-            addHeader(table, "模块", "类别", "项目名称", "规格型号", "单位", "数量", "含税单价", "含税金额");
+            addHeader(table, unicodeTextSupported,
+                    "模块", "类别", "项目名称", "规格型号", "单位", "数量", "含税单价", "含税金额");
             for (LineItem item : lineItems) {
-                table.addCell(cell(moduleName(item.getModuleCode())));
-                table.addCell(cell(item.getCategoryCode()));
-                table.addCell(cell(item.getName()));
-                table.addCell(cell(item.getSpec()));
-                table.addCell(cell(item.getUnit()));
-                table.addCell(cell(formatNumber(item.getQty())));
-                table.addCell(cell(formatNumber(item.getPriceTax())));
-                table.addCell(cell(formatNumber(item.getAmountTax())));
+                table.addCell(cell(safeText(moduleName(item.getModuleCode()), unicodeTextSupported)));
+                table.addCell(cell(safeText(item.getCategoryCode(), unicodeTextSupported)));
+                table.addCell(cell(safeText(item.getName(), unicodeTextSupported)));
+                table.addCell(cell(safeText(item.getSpec(), unicodeTextSupported)));
+                table.addCell(cell(safeText(item.getUnit(), unicodeTextSupported)));
+                table.addCell(cell(safeText(formatNumber(item.getQty()), unicodeTextSupported)));
+                table.addCell(cell(safeText(formatNumber(item.getPriceTax()), unicodeTextSupported)));
+                table.addCell(cell(safeText(formatNumber(item.getAmountTax()), unicodeTextSupported)));
             }
             document.add(table);
             document.close();
@@ -436,9 +447,20 @@ public class ExportService {
 
     private PdfFont resolveFont() {
         try {
-            Path fontPath = Paths.get("C:/Windows/Fonts/simsun.ttc");
-            if (Files.exists(fontPath)) {
-                return PdfFontFactory.createFont(fontPath.toString() + ",0", PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            String[] candidatePaths = {
+                    "C:/Windows/Fonts/simsun.ttc",
+                    "/System/Library/Fonts/PingFang.ttc",
+                    "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                    "/System/Library/Fonts/STHeiti Light.ttc",
+                    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+                    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+            };
+            for (String candidate : candidatePaths) {
+                Path fontPath = Paths.get(candidate);
+                if (Files.exists(fontPath)) {
+                    return PdfFontFactory.createFont(fontPath.toString() + ",0", PdfEncodings.IDENTITY_H,
+                            PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+                }
             }
             return PdfFontFactory.createFont("STSongStd-Light", "UniGB-UCS2-H", PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
         } catch (Exception ex) {
@@ -446,9 +468,10 @@ public class ExportService {
         }
     }
 
-    private void addHeader(Table table, String... headers) {
+    private void addHeader(Table table, boolean unicodeTextSupported, String... headers) {
         for (String header : headers) {
-            com.itextpdf.layout.element.Cell cell = new com.itextpdf.layout.element.Cell().add(new Paragraph(header));
+            com.itextpdf.layout.element.Cell cell = new com.itextpdf.layout.element.Cell()
+                    .add(new Paragraph(safeText(header, unicodeTextSupported)));
             cell.setBackgroundColor(ColorConstants.LIGHT_GRAY);
             table.addHeaderCell(cell);
         }
@@ -476,6 +499,14 @@ public class ExportService {
             return "费用";
         }
         return moduleCode == null ? "" : moduleCode;
+    }
+
+    private String safeText(String value, boolean unicodeTextSupported) {
+        String text = value == null ? "" : value;
+        if (unicodeTextSupported) {
+            return text;
+        }
+        return text.replaceAll("[^\\x20-\\x7E]", "?");
     }
 
     private static class ColumnPosition {

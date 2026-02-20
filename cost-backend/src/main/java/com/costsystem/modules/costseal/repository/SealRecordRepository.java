@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SealRecordRepository extends JpaRepository<SealRecord, Long> {
+    java.util.List<SealRecord> findByVersionIdOrderBySealedAtDesc(Long versionId);
 }

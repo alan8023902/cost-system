@@ -1,138 +1,214 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Bell, User } from 'lucide-react';
-import { NAVIGATION_ITEMS } from '../constants';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronDown, LogOut, Menu, Settings, User } from 'lucide-react';
+import { AppLogoMark, GLOBAL_NAV_ITEMS, PROJECT_NAV_ITEMS, VERSION_NAV_ITEMS } from '../constants';
+import { clearAuthToken, workflowApi } from '../services/apiService';
 
 interface LayoutProps {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
+  rightPanel?: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title, subtitle }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title, subtitle, rightPanel }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [pendingTaskCount, setPendingTaskCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const versionMatch = matchPath('/versions/:versionId/*', location.pathname);
+  const projectMatch = matchPath('/projects/:projectId', location.pathname);
+
+  const navItems = useMemo(() => {
+    if (versionMatch?.params.versionId) {
+      return VERSION_NAV_ITEMS(versionMatch.params.versionId);
+    }
+    if (projectMatch?.params.projectId) {
+      return PROJECT_NAV_ITEMS(projectMatch.params.projectId);
+    }
+    return GLOBAL_NAV_ITEMS;
+  }, [versionMatch?.params.versionId, projectMatch?.params.projectId]);
 
   useEffect(() => {
-    // Load pending task count
-    loadPendingTaskCount();
-    // Refresh every 30 seconds
-    const interval = setInterval(loadPendingTaskCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadPendingTaskCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/workflow/my-tasks', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+    let alive = true;
+    workflowApi
+      .getMyTasks()
+      .then((tasks) => {
+        if (!alive) return;
+        const count = Array.isArray(tasks)
+          ? tasks.filter((task) => String(task?.status).toUpperCase() === 'PENDING').length
+          : 0;
+        setPendingCount(count);
+      })
+      .catch(() => {
+        if (alive) setPendingCount(0);
       });
+    return () => {
+      alive = false;
+    };
+  }, [location.pathname]);
 
-      if (response.ok) {
-        const result = await response.json();
-        const tasks = result.data || result;
-        const pending = tasks.filter((t: any) => t.status === 'PENDING');
-        setPendingTaskCount(pending.length);
-      }
-    } catch (error) {
-      console.error('Failed to load task count:', error);
+  const isActive = (path: string) => {
+    if (path.includes('?')) {
+      const [base, query = ''] = path.split('?');
+      return location.pathname === base && location.search.includes(query);
     }
+    return location.pathname === path;
   };
 
-  return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 shrink-0">
-        <div className="h-16 flex items-center px-6 border-b border-slate-800">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-sm">ET</span>
-          </div>
-          <span className="text-white font-semibold tracking-tight text-sm">工程成本税务系统</span>
-        </div>
-        
-        <nav className="flex-1 py-4 px-3 space-y-1">
-          {NAVIGATION_ITEMS.map((item) => (
+  const handleLogout = () => {
+    clearAuthToken();
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  const sidebar = (
+    <aside className="w-[260px] bg-[#F8FAFE] border-r border-slate-200 flex flex-col">
+      <nav className="flex-1 overflow-y-auto p-3">
+        {navItems.map((item) => {
+          const active = isActive(item.path);
+          const tone = (item as any).tone || 'text-slate-500';
+          return (
             <button
               key={item.id}
-              onClick={() => item.path !== '#' && navigate(item.path)}
-              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 group ${
-                location.pathname.startsWith(item.path) && item.path !== '#'
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-slate-800 hover:text-white'
+              onClick={() => {
+                navigate(item.path);
+                setMenuOpen(false);
+              }}
+              className={`group relative mb-1 flex w-full items-center gap-3 px-3 py-2 text-sm transition-all ${
+                active
+                  ? 'bg-[#E9F0FF] text-[#1A5CFF] font-medium'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              <div className="flex items-center">
-                <span className={`${location.pathname.startsWith(item.path) && item.path !== '#' ? 'text-white' : 'text-slate-400 group-hover:text-white'} mr-3`}>
-                  {item.icon}
-                </span>
-                {item.label}
-              </div>
-              {item.path === '/my-tasks' && pendingTaskCount > 0 && (
-                <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-medium">
-                  {pendingTaskCount}
+              {active && <span className="absolute left-0 top-1 h-7 w-1 bg-[#1A5CFF]" />}
+              <span
+                className={`transition-transform duration-200 ${active ? 'text-[#1A5CFF]' : `${tone} group-hover:rotate-[5deg]`}`}
+              >
+                {item.icon}
+              </span>
+              <span className="text-left">{item.label}</span>
+              {item.id === 'my-tasks' && pendingCount > 0 && (
+                <span className="ml-auto rounded-full bg-red-500 px-1.5 text-[11px] text-white">
+                  {pendingCount}
                 </span>
               )}
             </button>
-          ))}
-        </nav>
+          );
+        })}
+      </nav>
+    </aside>
+  );
 
-        <div className="p-4 border-t border-slate-800">
-          <button 
-            onClick={() => navigate('/login')}
-            className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <LogOut size={18} className="mr-3" />
-            退出系统
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
-          <div className="flex flex-col">
-            <h1 className="text-lg font-semibold text-slate-800">{title || '概览'}</h1>
-            {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+  return (
+    <div className="flex h-screen flex-col bg-slate-50 text-slate-900">
+      <header className="h-16 border-b-2 border-slate-200 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+        <div className="flex h-full items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <button className="md:hidden text-slate-600 hover:text-slate-900" onClick={() => setMenuOpen((v) => !v)}>
+              <Menu size={20} />
+            </button>
+            <Link to="/overview" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-[#1A5CFF] to-[#0A3EB0] shadow-sm ring-1 ring-white/40">
+                <AppLogoMark className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <span className="text-base font-semibold text-slate-900">工程成本系统</span>
+                <div className="hidden md:block text-xs text-slate-500">{title || '全局概览'}</div>
+              </div>
+            </Link>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => navigate('/my-tasks')}
-              className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative"
-              title="我的待办"
-            >
-              <Bell size={20} />
-              {pendingTaskCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium border-2 border-white">
-                  {pendingTaskCount > 9 ? '9+' : pendingTaskCount}
+
+          <div className="flex items-center gap-3">
+            {/* 消息通知 */}
+            <button className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {pendingCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                  {pendingCount > 9 ? '9+' : pendingCount}
                 </span>
               )}
             </button>
-            <div className="h-8 w-[1px] bg-slate-200 mx-2"></div>
-            <div className="flex items-center space-x-3 group cursor-pointer">
-              <div className="text-right">
-                <p className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">张大为</p>
-                <p className="text-xs text-slate-500">高级成本工程师</p>
-              </div>
-              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200 overflow-hidden">
-                <User size={20} className="text-slate-500" />
-              </div>
+
+            {/* 用户菜单 */}
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100 transition-colors"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#1A5CFF] to-[#0A3EB0] text-xs text-white font-medium shadow-sm">
+                  AD
+                </span>
+                <span className="hidden text-sm md:block text-slate-700 font-medium">Admin</span>
+                <ChevronDown size={16} className="text-slate-500" />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-12 z-20 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                  <button
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-slate-100 transition-colors"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/profile');
+                    }}
+                  >
+                    <User size={16} className="text-slate-500" />
+                    <span className="text-slate-700">个人中心</span>
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-slate-100 transition-colors"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/settings');
+                    }}
+                  >
+                    <Settings size={16} className="text-slate-500" />
+                    <span className="text-slate-700">系统设置</span>
+                  </button>
+                  <div className="my-1.5 h-px bg-slate-200"></div>
+                  <button
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>退出登录</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </header>
-
-        {/* Content Wrapper */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-8 max-w-[1600px] mx-auto">
-            {children}
-          </div>
         </div>
-      </main>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
+        <div className="hidden md:flex">{sidebar}</div>
+        {menuOpen && (
+          <div className="fixed inset-0 z-30 bg-black/40 md:hidden">
+            <div className="h-full w-[260px] bg-[#F8FAFE]">{sidebar}</div>
+          </div>
+        )}
+
+        <main className="flex min-w-0 flex-1">
+          <section className="flex min-w-0 flex-1 flex-col overflow-auto p-4">
+            <div className="mb-3 border-b border-slate-100 pb-2">
+              <h1 className="text-base font-semibold">{title || '工作台'}</h1>
+              {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+            </div>
+            {children}
+          </section>
+          {rightPanel && (
+            <aside className="hidden w-[320px] shrink-0 border-l border-slate-200 bg-[#F8FAFE] p-4 lg:block">
+              {rightPanel}
+            </aside>
+          )}
+        </main>
+      </div>
     </div>
   );
 };

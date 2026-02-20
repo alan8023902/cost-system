@@ -22,7 +22,7 @@ public class IndicatorValue {
     @Column(name = "indicator_key", nullable = false, length = 128)
     private String indicatorKey;
 
-    @Column(name = "value", nullable = false, precision = 18, scale = 2)
+    @Column(name = "`value`", nullable = false, precision = 18, scale = 2)
     private BigDecimal value;
 
     @Column(name = "unit", length = 16)

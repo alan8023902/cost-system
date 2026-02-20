@@ -85,6 +85,17 @@ public class AuthController {
     }
 
     /**
+     * 更新个人信息
+     */
+    @PutMapping("/profile")
+    public ApiResponse<UserInfo> updateProfile(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        UserInfo userInfo = authService.updateProfile(userId, request);
+        return ApiResponse.success(userInfo);
+    }
+
+    /**
      * 健康检查
      */
     @GetMapping("/health")

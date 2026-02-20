@@ -1,6 +1,8 @@
 package com.costsystem.modules.costtemplate.service;
 
 import com.costsystem.common.exception.BusinessException;
+import com.costsystem.modules.costcalc.entity.CalcRule;
+import com.costsystem.modules.costcalc.repository.CalcRuleRepository;
 import com.costsystem.modules.costtemplate.dto.TemplateCreateRequest;
 import com.costsystem.modules.costtemplate.dto.TemplateInfo;
 import com.costsystem.modules.costtemplate.dto.TemplateUpdateRequest;
@@ -20,9 +22,12 @@ import java.util.stream.Collectors;
 public class TemplateService {
 
     private final TemplateRepository templateRepository;
+    private final CalcRuleRepository calcRuleRepository;
 
-    public TemplateService(TemplateRepository templateRepository) {
+    public TemplateService(TemplateRepository templateRepository,
+                           CalcRuleRepository calcRuleRepository) {
         this.templateRepository = templateRepository;
+        this.calcRuleRepository = calcRuleRepository;
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +63,9 @@ public class TemplateService {
         template.setTemplateVersion(request.getTemplateVersion().trim());
         template.setSchemaJson(request.getSchemaJson().trim());
         template.setStatus(Template.TemplateStatus.DRAFT);
-        return toInfo(templateRepository.save(template));
+        Template saved = templateRepository.save(template);
+        ensureDefaultCalcRules(saved.getId());
+        return toInfo(saved);
     }
 
     @Transactional
@@ -80,6 +87,7 @@ public class TemplateService {
         if (target.getStatus() == Template.TemplateStatus.DISABLED) {
             throw BusinessException.conflict("已禁用模板不能直接发布，请先更新为草稿后再发布");
         }
+        ensureDefaultCalcRules(target.getId());
 
         List<Template> publishedTemplates = templateRepository.findByStatusOrderByUpdatedAtDesc(Template.TemplateStatus.PUBLISHED);
         for (Template template : publishedTemplates) {
@@ -123,5 +131,30 @@ public class TemplateService {
                 template.getCreatedAt(),
                 template.getUpdatedAt()
         );
+    }
+
+    private void ensureDefaultCalcRules(Long templateId) {
+        if (templateId == null || calcRuleRepository.existsByTemplateId(templateId)) {
+            return;
+        }
+
+        calcRuleRepository.save(buildRule(templateId, "TOTAL_MATERIAL",
+                "SUM(amount_tax) WHERE module_code = \"MATERIAL\"", 1));
+        calcRuleRepository.save(buildRule(templateId, "TOTAL_SUBCONTRACT",
+                "SUM(amount_tax) WHERE module_code = \"SUBCONTRACT\"", 2));
+        calcRuleRepository.save(buildRule(templateId, "TOTAL_EXPENSE",
+                "SUM(amount_tax) WHERE module_code = \"EXPENSE\"", 3));
+        calcRuleRepository.save(buildRule(templateId, "TOTAL_COST",
+                "TOTAL_MATERIAL + TOTAL_SUBCONTRACT + TOTAL_EXPENSE", 4));
+    }
+
+    private CalcRule buildRule(Long templateId, String key, String expression, int orderNo) {
+        CalcRule rule = new CalcRule();
+        rule.setTemplateId(templateId);
+        rule.setIndicatorKey(key);
+        rule.setExpression(expression);
+        rule.setEnabled(true);
+        rule.setOrderNo(orderNo);
+        return rule;
     }
 }

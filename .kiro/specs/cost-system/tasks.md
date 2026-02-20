@@ -143,7 +143,8 @@
 ### 12.1 基础框架
 
 - [x] 登录页
-- [-] 项目列表/项目详情（版本列表、成员管理）
+- [x] 项目列表/项目详情（版本列表、成员管理）
+
 - [x] 版本工作台（核心）
 
 ### 12.2 工作台页面（必须）
@@ -174,8 +175,10 @@
 与 docs 的映射（方便团队对照）：
 
 - **PRD 与业务口径**：[prd.md](../../docs/prd.md)
-- **后端架构与 DB**：[Backend-Design.md](../../docs/Backend-Design.md)
-- **前端与交互**：[Frontend-Design.md](../../docs/Frontend-Design.md)
+- **系统架构与数据流**：[系统架构与数据流说明.md](../../docs/系统架构与数据流说明.md)
+- **前端规范与交互**：[Frontend-UI-Global-Standard.md](../../docs/Frontend-UI-Global-Standard.md)
+- **前端使用说明**：[React前端使用说明.md](../../docs/React前端使用说明.md)
+- **后端接口清单**：[后端API功能清单.md](../../docs/后端API功能清单.md)
 - **测试用例**：[TestPlan.md](../../docs/TestPlan.md)
 - **模板规范**：[Template-Schema-Spec.md](../../docs/Template-Schema-Spec.md)
 - **DSL 规范**：[Calc-DSL-Spec.md](../../docs/Calc-DSL-Spec.md)

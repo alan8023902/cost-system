@@ -11,6 +11,9 @@ public class ProjectInfo {
     private Long id;
     private String code;
     private String name;
+    private String description;
+    private String tagColor;
+    private String coverUrl;
     private Long orgId;
     private String status;
     private Long createdBy;
@@ -95,5 +98,29 @@ public class ProjectInfo {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTagColor() {
+        return tagColor;
+    }
+
+    public void setTagColor(String tagColor) {
+        this.tagColor = tagColor;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

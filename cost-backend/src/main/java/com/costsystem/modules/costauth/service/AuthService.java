@@ -1,6 +1,7 @@
 package com.costsystem.modules.costauth.service;
 
 import com.costsystem.common.exception.BusinessException;
+import com.costsystem.common.util.ValidationUtil;
 import com.costsystem.modules.costauth.dto.*;
 import com.costsystem.modules.costauth.entity.User;
 import com.costsystem.modules.costauth.repository.UserRepository;
@@ -96,6 +97,7 @@ public class AuthService {
         UserInfo userInfo = new UserInfo(
                 user.getId(),
                 user.getUsername(),
+                user.getEmail(),
                 user.getPhone(),
                 user.getStatus().name(),
                 user.getOrgId()
@@ -134,6 +136,7 @@ public class AuthService {
         UserInfo userInfo = new UserInfo(
                 user.getId(),
                 user.getUsername(),
+                user.getEmail(),
                 user.getPhone(),
                 user.getStatus().name(),
                 user.getOrgId()
@@ -234,6 +237,49 @@ public class AuthService {
         return new UserInfo(
                 user.getId(),
                 user.getUsername(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getStatus().name(),
+                user.getOrgId()
+        );
+    }
+
+    /**
+     * 更新个人信息
+     */
+    @Transactional
+    public UserInfo updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+
+        String normalizedEmail = normalizeEmailOrNull(request.getEmail());
+        String normalizedPhone = normalizePhoneOrNull(request.getPhone());
+
+        if (normalizedEmail != null) {
+            userRepository.findByEmail(normalizedEmail)
+                    .filter(found -> !found.getId().equals(userId))
+                    .ifPresent(found -> {
+                        throw new BusinessException("邮箱已被占用");
+                    });
+        }
+
+        if (normalizedPhone != null) {
+            ValidationUtil.validPhone(normalizedPhone, "手机号格式不正确");
+            userRepository.findByPhone(normalizedPhone)
+                    .filter(found -> !found.getId().equals(userId))
+                    .ifPresent(found -> {
+                        throw new BusinessException("手机号已被占用");
+                    });
+        }
+
+        user.setEmail(normalizedEmail);
+        user.setPhone(normalizedPhone);
+        user = userRepository.save(user);
+
+        return new UserInfo(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
                 user.getPhone(),
                 user.getStatus().name(),
                 user.getOrgId()
@@ -264,6 +310,19 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeEmailOrNull(String email) {
+        String normalized = normalizeEmail(email);
+        return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizePhoneOrNull(String phone) {
+        if (phone == null) {
+            return null;
+        }
+        String normalized = phone.trim();
+        return normalized.isBlank() ? null : normalized;
     }
 
     private record ResetCodeHolder(String code, LocalDateTime expireAt, LocalDateTime cooldownUntil) {

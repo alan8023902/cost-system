@@ -18,12 +18,15 @@ public class VersionInfo {
     private LocalDateTime submittedAt;
     private LocalDateTime approvedAt;
     private LocalDateTime issuedAt;
+    private Double sealPosX;
+    private Double sealPosY;
 
     public VersionInfo() {}
 
     public VersionInfo(Long id, Long projectId, Long templateId, Integer versionNo, String status,
                        LocalDateTime createdAt, LocalDateTime updatedAt,
-                       LocalDateTime submittedAt, LocalDateTime approvedAt, LocalDateTime issuedAt) {
+                       LocalDateTime submittedAt, LocalDateTime approvedAt, LocalDateTime issuedAt,
+                       Double sealPosX, Double sealPosY) {
         this.id = id;
         this.projectId = projectId;
         this.templateId = templateId;
@@ -34,6 +37,8 @@ public class VersionInfo {
         this.submittedAt = submittedAt;
         this.approvedAt = approvedAt;
         this.issuedAt = issuedAt;
+        this.sealPosX = sealPosX;
+        this.sealPosY = sealPosY;
     }
 
     public Long getId() {
@@ -114,5 +119,21 @@ public class VersionInfo {
 
     public void setIssuedAt(LocalDateTime issuedAt) {
         this.issuedAt = issuedAt;
+    }
+
+    public Double getSealPosX() {
+        return sealPosX;
+    }
+
+    public void setSealPosX(Double sealPosX) {
+        this.sealPosX = sealPosX;
+    }
+
+    public Double getSealPosY() {
+        return sealPosY;
+    }
+
+    public void setSealPosY(Double sealPosY) {
+        this.sealPosY = sealPosY;
     }
 }

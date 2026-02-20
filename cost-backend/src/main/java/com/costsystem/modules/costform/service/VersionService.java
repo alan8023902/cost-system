@@ -26,11 +26,15 @@ import java.util.stream.Collectors;
 @Service
 public class VersionService {
 
+    private static final double DEFAULT_SEAL_POS_X = 0.64d;
+    private static final double DEFAULT_SEAL_POS_Y = 0.095d;
+
     private final FormVersionRepository versionRepository;
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
     private final WorkflowService workflowService;
     private final AuditLogService auditLogService;
+
 
     public VersionService(FormVersionRepository versionRepository,
                           ProjectRepository projectRepository,
@@ -87,6 +91,9 @@ public class VersionService {
 
     @Transactional(readOnly = true)
     public VersionInfo getVersion(Long userId, Long versionId) {
+        if (versionId == null) {
+            throw BusinessException.badRequest("版本ID不能为空");
+        }
         FormVersion version = versionRepository.findById(versionId)
                 .orElseThrow(() -> new BusinessException("版本不存在"));
         if (!projectRepository.hasAccess(version.getProjectId(), userId)) {
@@ -179,7 +186,29 @@ public class VersionService {
         auditLogService.log(userId, version.getProjectId(), version.getId(), "VERSION", version.getId(), "VERSION_ARCHIVE", detail);
     }
 
+    @Transactional
+    public VersionInfo updateSealPosition(Long userId, Long versionId, Double sealPosX, Double sealPosY) {
+        if (sealPosX == null || sealPosY == null) {
+            throw BusinessException.badRequest("盖章位置不能为空");
+        }
+        if (sealPosX < 0 || sealPosX > 1 || sealPosY < 0 || sealPosY > 1) {
+            throw BusinessException.badRequest("盖章位置必须在0-1之间");
+        }
+        FormVersion version = loadVersionWithAccess(userId, versionId);
+        version.setSealPosX(sealPosX);
+        version.setSealPosY(sealPosY);
+        versionRepository.save(version);
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("sealPosX", sealPosX);
+        detail.put("sealPosY", sealPosY);
+        auditLogService.log(userId, version.getProjectId(), version.getId(), "VERSION", version.getId(), "SEAL_POSITION_UPDATE", detail);
+        return convertToInfo(version);
+    }
+
     private FormVersion loadVersionWithAccess(Long userId, Long versionId) {
+        if (versionId == null) {
+            throw BusinessException.badRequest("版本ID不能为空");
+        }
         FormVersion version = versionRepository.findById(versionId)
                 .orElseThrow(() -> new BusinessException("版本不存在"));
         if (!projectRepository.hasAccess(version.getProjectId(), userId)) {
@@ -189,6 +218,8 @@ public class VersionService {
     }
 
     private VersionInfo convertToInfo(FormVersion version) {
+        Double sealPosX = version.getSealPosX() == null ? DEFAULT_SEAL_POS_X : version.getSealPosX();
+        Double sealPosY = version.getSealPosY() == null ? DEFAULT_SEAL_POS_Y : version.getSealPosY();
         return new VersionInfo(
                 version.getId(),
                 version.getProjectId(),
@@ -199,7 +230,9 @@ public class VersionService {
                 version.getUpdatedAt(),
                 version.getSubmittedAt(),
                 version.getApprovedAt(),
-                version.getIssuedAt()
+                version.getIssuedAt(),
+                sealPosX,
+                sealPosY
         );
     }
 }

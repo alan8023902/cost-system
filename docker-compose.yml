@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: cost-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-liurongai}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-cost_system}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./deploy/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - cost-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-liurongai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: cost-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD:-alanlr} --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - cost-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-alanlr}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 后端服务
+  backend:
+    build:
+      context: ./cost-backend
+      dockerfile: Dockerfile
+    container_name: cost-backend
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/cost_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-liurongai}
+      SPRING_REDIS_HOST: ${SPRING_REDIS_HOST:-redis}
+      SPRING_REDIS_PORT: ${SPRING_REDIS_PORT:-6379}
+      SPRING_REDIS_PASSWORD: ${SPRING_REDIS_PASSWORD:-alanlr}
+      JWT_SECRET: ${JWT_SECRET:-cost-system-jwt-secret-key-2024-very-long-and-secure-production-change-this-in-production}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      FILE_UPLOAD_PATH: ${FILE_UPLOAD_PATH:-/app/uploads}
+      FILE_MAX_SIZE: ${FILE_MAX_SIZE:-100MB}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-/app/logs/cost-system.log}
+      SPRING_SECURITY_USER: ${SPRING_SECURITY_USER:-admin}
+      SPRING_SECURITY_PASSWORD: ${SPRING_SECURITY_PASSWORD:-admin123}
+      TZ: Asia/Shanghai
+    ports:
+      - "${BACKEND_PORT:-31943}:31943"
+    volumes:
+      - backend-uploads:/app/uploads
+      - backend-logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cost-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31943/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./cost-frontend-react
+      dockerfile: Dockerfile
+    container_name: cost-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-38443}:38443"
+    depends_on:
+      - backend
+    networks:
+      - cost-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:38443"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  cost-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  backend-uploads:
+    driver: local
+  backend-logs:
+    driver: local

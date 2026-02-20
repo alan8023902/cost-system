@@ -32,8 +32,8 @@ export const AuditLogPanel: React.FC<AuditLogPanelProps> = ({ projectId, version
     try {
       const token = localStorage.getItem('token');
       const url = versionId && filter !== 'project'
-        ? `/api/projects/${projectId}/audit-logs?versionId=${versionId}`
-        : `/api/projects/${projectId}/audit-logs`;
+        ? `/api/audit/projects/${projectId}/audit-logs?versionId=${versionId}`
+        : `/api/audit/projects/${projectId}/audit-logs`;
       
       const response = await fetch(url, {
         headers: {
@@ -128,31 +128,19 @@ export const AuditLogPanel: React.FC<AuditLogPanelProps> = ({ projectId, version
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              filter === 'all'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`ui-btn ui-btn-sm ${filter === 'all' ? 'ui-btn-primary' : 'ui-btn-default'}`}
           >
             全部日志
           </button>
           <button
             onClick={() => setFilter('version')}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              filter === 'version'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`ui-btn ui-btn-sm ${filter === 'version' ? 'ui-btn-primary' : 'ui-btn-default'}`}
           >
             当前版本
           </button>
           <button
             onClick={() => setFilter('project')}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              filter === 'project'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`ui-btn ui-btn-sm ${filter === 'project' ? 'ui-btn-primary' : 'ui-btn-default'}`}
           >
             项目日志
           </button>

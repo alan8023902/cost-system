@@ -20,7 +20,7 @@ public class SystemHealthController {
     @Autowired
     private DataSource dataSource;
     
-    @Autowired
+    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
     
     @GetMapping("/health")
@@ -74,7 +74,13 @@ public class SystemHealthController {
     @GetMapping("/redis/test")
     public ApiResponse<Map<String, Object>> testRedis() {
         Map<String, Object> result = new HashMap<>();
-        
+        if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
+            result.put("connected", false);
+            result.put("status", "NOT_CONFIGURED");
+            result.put("error", "Redis is not configured");
+            return ApiResponse.success(result);
+        }
+
         try {
             // 测试Redis连接
             String testKey = "health_check_" + System.currentTimeMillis();
@@ -109,6 +115,10 @@ public class SystemHealthController {
     
     private Map<String, Object> checkRedisConnection() {
         Map<String, Object> redisStatus = new HashMap<>();
+        if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
+            redisStatus.put("status", "NOT_CONFIGURED");
+            return redisStatus;
+        }
         try {
             redisTemplate.getConnectionFactory().getConnection().ping();
             redisStatus.put("status", "UP");

@@ -1,0 +1,11 @@
+<!-- 图标单独使用 -->
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 立方体 -->
+  <path d="M24 8L36 14V26L24 32L12 26V14L24 8Z" fill="#3B82F6" opacity="0.9"/>
+  <path d="M24 8L36 14L24 20L12 14L24 8Z" fill="#60A5FA"/>
+  <path d="M24 20V32L12 26V14L24 20Z" fill="#2563EB"/>
+
+  <!-- 图表元素 -->
+  <path d="M18 22L20 20L22 21L24 18" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="18" r="1.5" fill="white"/>
+</svg>

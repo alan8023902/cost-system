@@ -24,7 +24,7 @@ public class AuditController {
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping("/projects/{projectId}/audit-logs")
+    @GetMapping({"/audit/projects/{projectId}/audit-logs", "/projects/{projectId}/audit-logs"})
     @Operation(summary = "查询审计日志")
     @RequirePerm("ITEM_READ")
     public ApiResponse<List<AuditLogDto>> listLogs(
